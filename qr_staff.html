@@ -270,7 +270,8 @@ option{background:var(--bg3);}
 <script>
 const CFG='qr_att_cfg2', NAME_KEY='qr_att_myname';
 let SB_URL='', SB_KEY='', myStaff=null, stampType='in';
-let videoStream=null, scannerActive=false, scanCooldown=false, animFrame=null;
+let videoStream=null, scannerActive=false, scanCooldown=false, scanInterval=null;
+const SCAN_CANVAS=document.createElement('canvas');
 
 function getConfig(){ try{ return JSON.parse(localStorage.getItem(CFG))||{}; }catch(e){ return {}; } }
 function saveCfg(url,key){ localStorage.setItem(CFG,JSON.stringify({url,key})); }
@@ -394,11 +395,19 @@ async function openScanner(){
   document.getElementById('scanner-overlay').classList.add('open');
   const video=document.getElementById('scanner-video');
   try{
-    videoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    videoStream=await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:'environment',
+        width:{ideal:1280},
+        height:{ideal:720},
+        frameRate:{ideal:30}
+      }
+    });
     video.srcObject=videoStream;
     await video.play();
     scannerActive=true; scanCooldown=false;
-    tickScanner();
+    // 100msインターバルで高速スキャン
+    scanInterval=setInterval(tickScanner, 100);
   }catch(e){
     alert('カメラへのアクセスが拒否されました。\nブラウザの設定でカメラを許可してください。');
     closeScanner();
@@ -407,27 +416,35 @@ async function openScanner(){
 
 function closeScanner(){
   scannerActive=false;
-  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+  if(scanInterval){ clearInterval(scanInterval); scanInterval=null; }
   if(videoStream){ videoStream.getTracks().forEach(t=>t.stop()); videoStream=null; }
   document.getElementById('scanner-overlay').classList.remove('open');
   document.getElementById('scanner-result-overlay').innerHTML='';
 }
 
 function tickScanner(){
-  if(!scannerActive) return;
+  if(!scannerActive||scanCooldown) return;
   const video=document.getElementById('scanner-video');
-  if(video.readyState===video.HAVE_ENOUGH_DATA&&!scanCooldown){
-    const canvas=document.createElement('canvas');
-    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-    const ctx=canvas.getContext('2d');
-    ctx.drawImage(video,0,0);
-    try{
-      const id=ctx.getImageData(0,0,canvas.width,canvas.height);
-      const code=jsQR(id.data,id.width,id.height,{inversionAttempts:'dontInvert'});
-      if(code){ handleQR(code.data); return; }
-    }catch(e){}
-  }
-  animFrame=requestAnimationFrame(tickScanner);
+  if(video.readyState!==video.HAVE_ENOUGH_DATA) return;
+  const vw=video.videoWidth, vh=video.videoHeight;
+  if(!vw||!vh) return;
+
+  // 中央の正方形だけ切り取って解析（高速化）
+  const size=Math.min(vw,vh)*0.7;
+  const sx=(vw-size)/2, sy=(vh-size)/2;
+  SCAN_CANVAS.width=size;
+  SCAN_CANVAS.height=size;
+  const ctx=SCAN_CANVAS.getContext('2d');
+  ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+
+  try{
+    const imgData=ctx.getImageData(0,0,size,size);
+    const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'dontInvert'});
+    if(code){
+      scanCooldown=true;
+      handleQR(code.data);
+    }
+  }catch(e){}
 }
 
 async function handleQR(data){
@@ -444,7 +461,7 @@ async function handleQR(data){
     const locs=await sbFetch(`locations?id=eq.${locId}&select=*`);
     if(!locs||!locs.length){
       showScannerResult('❌ 未登録の現場QRです',false);
-      setTimeout(()=>{ scanCooldown=false; animFrame=requestAnimationFrame(tickScanner); },2000);
+      setTimeout(()=>{ scanCooldown=false; },2000);
       return;
     }
     const loc=locs[0];
@@ -464,7 +481,7 @@ async function handleQR(data){
     setTimeout(()=>{ closeScanner(); loadTodayHistory(); },2200);
   }catch(e){
     showScannerResult('❌ 通信エラー。再試行してください',false);
-    setTimeout(()=>{ scanCooldown=false; animFrame=requestAnimationFrame(tickScanner); },2500);
+    setTimeout(()=>{ scanCooldown=false; },2500);
   }
 }
 
