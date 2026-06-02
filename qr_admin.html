@@ -547,6 +547,14 @@ function logout(){
 
 // INIT
 (function(){
+  const params=new URLSearchParams(window.location.search);
+  const pUrl=params.get('url');
+  const pKey=params.get('key');
+  if(pUrl&&pKey){
+    saveCfg(pUrl.replace(/\/$/,''), pKey);
+    startApp(pUrl.replace(/\/$/,''), pKey);
+    return;
+  }
   const cfg=getConfig();
   if(cfg.url&&cfg.key){ startApp(cfg.url,cfg.key); }
 })();
