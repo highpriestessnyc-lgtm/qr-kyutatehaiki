@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f0f">
+<title>出勤打刻</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0f0f0;--text2:#888;--text3:#555;
+  --accent:#e8ff3e;
+  --green:#3ddc84;--green-dim:rgba(61,220,132,0.12);
+  --red:#ff6b6b;--red-dim:rgba(255,107,107,0.12);
+  --radius:16px;--radius-sm:10px;
+  --font:'Noto Sans JP',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px 20px;}
+
+.container{width:100%;max-width:400px;}
+.loc-header{text-align:center;margin-bottom:28px;}
+.loc-icon{font-size:48px;margin-bottom:8px;}
+.loc-name{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
+.loc-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+
+/* NAME SELECT */
+.name-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.name-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
+select{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:16px;padding:14px;outline:none;-webkit-appearance:none;}
+select:focus{border-color:var(--accent);}
+option{background:var(--bg3);}
+
+/* TYPE BUTTONS */
+.type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.type-btn{
+  padding:18px;border-radius:var(--radius-sm);
+  border:0.5px solid var(--border2);background:var(--bg2);
+  color:var(--text2);font-family:var(--font);font-size:16px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;text-align:center;
+}
+.type-btn.active.in{background:var(--green-dim);color:var(--green);border-color:rgba(61,220,132,0.4);}
+.type-btn.active.out{background:var(--red-dim);color:var(--red);border-color:rgba(255,107,107,0.4);}
+.type-btn:active{transform:scale(0.97);}
+
+/* STAMP BUTTON */
+.stamp-btn{
+  width:100%;padding:20px;border-radius:var(--radius);
+  background:var(--accent);color:#0f0f0f;border:none;
+  font-family:var(--font);font-size:18px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;
+}
+.stamp-btn:active{transform:scale(0.97);opacity:0.9;}
+.stamp-btn:disabled{opacity:0.4;cursor:default;}
+
+/* RESULT */
+.result{
+  margin-top:16px;border-radius:var(--radius-sm);
+  padding:20px;text-align:center;font-size:16px;font-weight:700;
+  animation:fadeIn 0.2s ease;display:none;
+}
+.result.ok{background:var(--green-dim);color:var(--green);border:0.5px solid rgba(61,220,132,0.3);}
+.result.ng{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
+.result.show{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ERROR */
+.error-screen{text-align:center;padding:40px 20px;}
+.error-icon{font-size:48px;margin-bottom:12px;}
+.error-title{font-size:18px;font-weight:700;margin-bottom:8px;}
+.error-sub{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* LOADING */
+.loading{text-align:center;padding:60px 20px;color:var(--text2);font-size:14px;}
+.spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* HISTORY */
+.history{margin-top:20px;}
+.hist-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
+.hist-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:4px 16px;}
+.hist-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border);}
+.hist-row:last-child{border-bottom:none;}
+.hist-time{font-size:12px;color:var(--text2);min-width:42px;font-variant-numeric:tabular-nums;}
+.hist-name{flex:1;font-size:13px;font-weight:500;}
+.badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.badge-in{background:var(--green-dim);color:var(--green);}
+.badge-out{background:var(--red-dim);color:var(--red);}
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    読み込み中...
+  </div>
+</div>
+
+<script>
+const params=new URLSearchParams(window.location.search);
+const SB_URL=(params.get('url')||'').replace(/\/$/,'');
+const SB_KEY=params.get('key')||'';
+const LOC_ID=params.get('loc')||'';
+const NAME_KEY='qr_stamp_name';
+
+let staffCache=[], locData=null, stampType='in';
+
+async function sbFetch(path,opts={}){
+  const res=await fetch(SB_URL+'/rest/v1/'+path,{
+    ...opts,
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':opts.prefer||'',...(opts.headers||{})}
+  });
+  if(!res.ok){ const e=await res.text(); throw new Error(e); }
+  const ct=res.headers.get('content-type')||'';
+  return ct.includes('json')?res.json():null;
+}
+
+function fmtTime(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+async function init(){
+  const app=document.getElementById('app');
+  if(!SB_URL||!SB_KEY||!LOC_ID){
+    app.innerHTML=`<div class="error-screen"><div class="error-icon">⚠️</div><div class="error-title">URLが正しくありません</div><div class="error-sub">管理者から正しいQRコードを受け取ってください</div></div>`;
+    return;
+  }
+  try{
+    [staffCache, locData]=await Promise.all([
+      sbFetch('staff?select=*&order=name.asc'),
+      sbFetch(`locations?id=eq.${encodeURIComponent(LOC_ID)}&select=*`).then(r=>r&&r[0]||null)
+    ]);
+    if(!locData){
+      app.innerHTML=`<div class="error-screen"><div class="error-icon">📍</div><div class="error-title">現場が見つかりません</div><div class="error-sub">このQRコードは無効です。<br>管理者に連絡してください。</div></div>`;
+      return;
+    }
+    renderApp();
+  }catch(e){
+    app.innerHTML=`<div class="error-screen"><div class="error-icon">📡</div><div class="error-title">接続エラー</div><div class="error-sub">ネットワークを確認してください</div></div>`;
+  }
+}
+
+function renderApp(){
+  const savedId=localStorage.getItem(NAME_KEY)||'';
+  const app=document.getElementById('app');
+  app.innerHTML=`
+    <div class="loc-header">
+      <div class="loc-icon">📍</div>
+      <div class="loc-name">${locData.name}</div>
+      <div class="loc-sub">${locData.address||'打刻してください'}</div>
+    </div>
+    <div class="name-card">
+      <div class="name-label">あなたの名前</div>
+      <select id="staff-sel" onchange="onNameChange()">
+        <option value="">-- 名前を選択 --</option>
+        ${staffCache.map(s=>`<option value="${s.id}" ${s.id===savedId?'selected':''}>${s.name}${s.dept?' ('+s.dept+')':''}</option>`).join('')}
+      </select>
+    </div>
+    <div class="type-row">
+      <button class="type-btn active in" id="type-in" onclick="setType('in')">▲ 出勤</button>
+      <button class="type-btn out" id="type-out" onclick="setType('out')">▼ 退勤</button>
+    </div>
+    <button class="stamp-btn" id="stamp-btn" onclick="doStamp()">打刻する</button>
+    <div class="result" id="result"></div>
+    <div class="history" id="history"></div>
+  `;
+  loadHistory();
+}
+
+function onNameChange(){
+  const id=document.getElementById('staff-sel').value;
+  if(id) localStorage.setItem(NAME_KEY,id);
+}
+
+function setType(t){
+  stampType=t;
+  document.getElementById('type-in').className='type-btn'+(t==='in'?' active in':'');
+  document.getElementById('type-out').className='type-btn out'+(t==='out'?' active':'');
+}
+
+async function doStamp(){
+  const sid=document.getElementById('staff-sel').value;
+  if(!sid){ showResult('名前を選択してください',false); return; }
+  const staff=staffCache.find(s=>s.id===sid);
+  const btn=document.getElementById('stamp-btn');
+  btn.disabled=true; btn.textContent='送信中...';
+  try{
+    await sbFetch('attendance',{
+      method:'POST',prefer:'return=minimal',
+      body:JSON.stringify({
+        staff_id:staff.id,staff_name:staff.name,dept:staff.dept||'',
+        location_id:locData.id,location_name:locData.name,
+        type:stampType,time:new Date().toISOString()
+      })
+    });
+    const label=stampType==='in'?'▲ 出勤':'▼ 退勤';
+    const now=new Date();
+    showResult(`✓ ${label}しました\n${staff.name} — ${fmtTime(now)}`,true);
+    if(navigator.vibrate) navigator.vibrate([80,40,80]);
+    loadHistory();
+  }catch(e){
+    showResult('❌ 通信エラー。もう一度試してください',false);
+  } finally{
+    btn.disabled=false; btn.textContent='打刻する';
+  }
+}
+
+function showResult(msg,ok){
+  const el=document.getElementById('result');
+  el.className='result show '+(ok?'ok':'ng');
+  el.innerHTML=msg.replace('\n','<br>');
+  if(ok) setTimeout(()=>{ el.classList.remove('show'); },4000);
+}
+
+async function loadHistory(){
+  const today=new Date().toISOString().slice(0,10);
+  try{
+    const recs=await sbFetch(`attendance?location_id=eq.${encodeURIComponent(locData.id)}&time=gte.${today}T00:00:00&time=lte.${today}T23:59:59&order=time.desc&limit=20`);
+    const el=document.getElementById('history');
+    if(!recs.length){ el.innerHTML=''; return; }
+    el.innerHTML=`
+      <div class="hist-label">本日のこの現場の打刻</div>
+      <div class="hist-card">
+        ${recs.map(r=>`
+          <div class="hist-row">
+            <div class="hist-time">${fmtTime(new Date(r.time))}</div>
+            <div class="hist-name">${r.staff_name}</div>
+            <span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span>
+          </div>`).join('')}
+      </div>`;
+  }catch(e){}
+}
+
+init();
+</script>
+</body>
+</html>

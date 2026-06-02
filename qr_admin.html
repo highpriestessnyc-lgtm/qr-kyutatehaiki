@@ -601,12 +601,15 @@ function generateLocQR(){
   const btns=document.getElementById('qr-loc-btns');
   if(!lid){ box.innerHTML='<div class="empty-state">現場を選択するとQRが表示されます</div>'; btns.style.display='none'; return; }
   const loc=locCache.find(l=>l.id===lid);
-  box.innerHTML=`<div style="font-size:16px;font-weight:700">${loc.name}</div><div id="qr-loc-canvas"></div><div style="font-size:11px;color:var(--text2)">${loc.address||''}</div>`;
+  // iPhoneカメラで直接開けるURLをQRに埋め込む
+  const baseUrl=window.location.href.replace(/qr_admin\.html.*$/,'qr_stamp.html');
+  const stampUrl=`${baseUrl}?url=${encodeURIComponent(SB_URL)}&key=${encodeURIComponent(SB_KEY)}&loc=${encodeURIComponent(loc.id)}`;
+  box.innerHTML=`<div style="font-size:16px;font-weight:700;margin-bottom:4px">${loc.name}</div><div id="qr-loc-canvas"></div><div style="font-size:11px;color:var(--text2);margin-top:4px">${loc.address||''}</div><div style="font-size:10px;color:var(--text3);margin-top:6px;word-break:break-all;max-width:220px">${stampUrl.slice(0,80)}...</div>`;
   btns.style.display='block';
   if(typeof QRCode!=='undefined'){
     new QRCode(document.getElementById('qr-loc-canvas'),{
-      text:JSON.stringify({locationId:loc.id,locationName:loc.name}),
-      width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M
+      text:stampUrl,
+      width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L
     });
   }
 }
