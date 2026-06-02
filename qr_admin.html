@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出勤管理 — 管理者ダッシュボード</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--bg2:#141414;--bg3:#1e1e1e;--bg4:#282828;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#efefef;--text2:#888;--text3:#444;
+  --accent:#e8ff3e;--accent-dim:rgba(232,255,62,0.1);
+  --green:#3ddc84;--green-dim:rgba(61,220,132,0.1);
+  --red:#ff6b6b;--red-dim:rgba(255,107,107,0.1);
+  --amber:#ffb347;--amber-dim:rgba(255,179,71,0.1);
+  --radius:12px;--radius-sm:8px;
+  --font:'Noto Sans JP',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--bg);}
+body{font-family:var(--font);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* CONFIG */
+.config-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:40px 24px;gap:20px;
+}
+.config-logo{font-size:56px;}
+.config-title{font-size:26px;font-weight:700;}
+.config-sub{color:var(--text2);font-size:14px;text-align:center;}
+.config-card{width:100%;max-width:420px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:24px;}
+.form-field{margin-bottom:14px;}
+.form-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase;}
+input,select{
+  width:100%;background:var(--bg3);border:0.5px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);
+  font-size:14px;padding:11px 14px;outline:none;-webkit-appearance:none;
+  transition:border-color 0.2s;
+}
+input:focus,select:focus{border-color:var(--accent);}
+option{background:var(--bg3);}
+.btn{
+  padding:12px 20px;border-radius:var(--radius-sm);border:none;
+  font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;
+}
+.btn-accent{background:var(--accent);color:#0a0a0a;}
+.btn-accent:hover{opacity:0.9;}
+.btn-ghost{background:var(--bg3);color:var(--text);border:0.5px solid var(--border2);}
+.btn-ghost:hover{background:var(--bg4);}
+.btn-danger{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
+.btn-sm{padding:8px 14px;font-size:12px;}
+.btn-full{width:100%;}
+
+/* LAYOUT */
+.app{display:none;flex-direction:column;min-height:100vh;}
+.sidebar{
+  width:220px;background:var(--bg2);border-right:0.5px solid var(--border);
+  position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;
+  padding:24px 0;
+}
+.sidebar-logo{padding:0 20px 24px;border-bottom:0.5px solid var(--border);}
+.sidebar-logo-icon{font-size:28px;}
+.sidebar-logo-title{font-size:15px;font-weight:700;margin-top:4px;}
+.sidebar-logo-sub{font-size:11px;color:var(--text2);}
+.sidebar-nav{flex:1;padding:16px 12px;}
+.nav-link{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:var(--radius-sm);color:var(--text2);font-size:14px;
+  cursor:pointer;transition:all 0.15s;border:none;background:transparent;
+  width:100%;font-family:var(--font);margin-bottom:2px;
+}
+.nav-link.active{background:var(--accent-dim);color:var(--accent);}
+.nav-link:hover:not(.active){background:var(--bg3);color:var(--text);}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 20px;border-top:0.5px solid var(--border);}
+.conn-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
+.dot{width:7px;height:7px;border-radius:50%;}
+.dot-on{background:var(--green);}
+.dot-off{background:var(--red);}
+
+.main{margin-left:220px;flex:1;padding:32px;}
+.page{display:none;}
+.page.active{display:block;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.page-title{font-size:24px;font-weight:700;letter-spacing:-0.5px;}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;}
+.stat-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px 20px;}
+.stat-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
+.stat-val{font-size:32px;font-weight:700;font-family:var(--mono);line-height:1;}
+.stat-val.green{color:var(--green);}
+.stat-val.red{color:var(--red);}
+.stat-val.amber{color:var(--amber);}
+.stat-val.accent{color:var(--accent);}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--border);}
+.table-title{font-size:14px;font-weight:500;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;padding:10px 16px;font-weight:500;color:var(--text2);border-bottom:0.5px solid var(--border);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;}
+.tbl td{padding:12px 16px;border-bottom:0.5px solid var(--border);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--bg3);}
+.badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.badge-in{background:var(--green-dim);color:var(--green);}
+.badge-out{background:var(--red-dim);color:var(--red);}
+.badge-abs{background:rgba(255,255,255,0.05);color:var(--text3);}
+.avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--bg3);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--accent);
+  border:0.5px solid var(--border2);vertical-align:middle;margin-right:10px;
+}
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.filter-bar input,.filter-bar select{width:auto;font-size:13px;padding:8px 12px;}
+
+/* REALTIME PULSE */
+.live-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--green);
+  display:inline-block;margin-right:6px;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.85);}}
+
+/* STAFF MANAGEMENT */
+.add-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:20px;align-items:end;}
+.add-form .form-field{margin-bottom:0;}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;padding:12px 16px;border-right:none;border-bottom:0.5px solid var(--border);}
+  .sidebar-logo{padding:0;border:none;}
+  .sidebar-logo-sub,.sidebar-footer{display:none;}
+  .sidebar-nav{display:flex;padding:0;gap:4px;}
+  .nav-link{padding:8px 10px;font-size:12px;}
+  .main{margin-left:0;padding:16px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .add-form{grid-template-columns:1fr 1fr;}
+}
+.empty-state{text-align:center;padding:48px;color:var(--text3);font-size:14px;}
+</style>
+</head>
+<body>
+
+<!-- CONFIG -->
+<div class="config-screen" id="config-screen">
+  <div class="config-logo">📊</div>
+  <div class="config-title">管理者ダッシュボード</div>
+  <div class="config-sub">Supabaseの接続情報を入力してください</div>
+  <div class="config-card">
+    <div class="form-field"><label>Supabase URL</label><input type="url" id="cfg-url" placeholder="https://xxxx.supabase.co"></div>
+    <div class="form-field"><label>Anon Key</label><input type="text" id="cfg-key" placeholder="eyJhbGci..."></div>
+    <button class="btn btn-accent btn-full" onclick="saveConfig()">接続する</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="main-app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">📊</div>
+      <div class="sidebar-logo-title">出勤管理</div>
+      <div class="sidebar-logo-sub">管理者ダッシュボード</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-link active" onclick="showPage('dashboard',this)"><span class="nav-icon">🏠</span>ダッシュボード</button>
+      <button class="nav-link" onclick="showPage('realtime',this)"><span class="nav-icon">⚡</span>リアルタイム</button>
+      <button class="nav-link" onclick="showPage('records',this)"><span class="nav-icon">📋</span>出勤簿</button>
+      <button class="nav-link" onclick="showPage('report',this)"><span class="nav-icon">📊</span>レポート</button>
+      <button class="nav-link" onclick="showPage('staff',this)"><span class="nav-icon">👥</span>スタッフ管理</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="conn-status" style="margin-bottom:10px">
+        <div class="dot dot-off" id="conn-dot"></div>
+        <span id="conn-label">未接続</span>
+      </div>
+      <button class="btn btn-danger" style="width:100%;padding:10px;font-size:13px" onclick="logout()">⏏ ログアウト</button>
+    </div>
+  </div>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-title">ダッシュボード</div>
+        <div style="font-size:12px;color:var(--text2)" id="dash-updated"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">出勤中</div><div class="stat-val green" id="d-in">—</div></div>
+        <div class="stat-card"><div class="stat-label">退勤済</div><div class="stat-val red" id="d-out">—</div></div>
+        <div class="stat-card"><div class="stat-label">未出勤</div><div class="stat-val amber" id="d-abs">—</div></div>
+        <div class="stat-card"><div class="stat-label">総スタッフ</div><div class="stat-val accent" id="d-total">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">本日のスタッフ状況</div>
+          <button class="btn btn-ghost btn-sm" onclick="refreshAll()">↻ 更新</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>スタッフ</th><th>部署</th><th>状態</th><th>最終打刻</th></tr></thead>
+          <tbody id="dash-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REALTIME -->
+    <div id="page-realtime" class="page">
+      <div class="page-header">
+        <div class="page-title"><span class="live-dot"></span>リアルタイム</div>
+        <div style="font-size:12px;color:var(--green)">自動更新中</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">出勤中</div><div class="stat-val green" id="rt-in">—</div></div>
+        <div class="stat-card"><div class="stat-label">退勤済</div><div class="stat-val red" id="rt-out">—</div></div>
+        <div class="stat-card"><div class="stat-label">未出勤</div><div class="stat-val amber" id="rt-abs">—</div></div>
+        <div class="stat-card"><div class="stat-label">本日打刻数</div><div class="stat-val accent" id="rt-count">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">全スタッフ状況</div></div>
+        <table class="tbl">
+          <thead><tr><th>スタッフ</th><th>部署</th><th>状態</th><th>最終打刻</th></tr></thead>
+          <tbody id="rt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div id="page-records" class="page">
+      <div class="page-header">
+        <div class="page-title">出勤簿</div>
+        <div class="filter-bar">
+          <input type="date" id="rec-from" style="width:140px">
+          <input type="date" id="rec-to" style="width:140px">
+          <select id="rec-staff" style="width:140px"></select>
+          <button class="btn btn-ghost btn-sm" onclick="filterRecords()">絞り込み</button>
+          <button class="btn btn-accent btn-sm" onclick="exportCSV()">↓ CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>日時</th><th>スタッフ</th><th>部署</th><th>種別</th></tr></thead>
+          <tbody id="rec-tbody"></tbody>
+        </table>
+        <div id="rec-empty" class="empty-state" style="display:none">データがありません</div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div id="page-report" class="page">
+      <div class="page-header">
+        <div class="page-title">月次レポート</div>
+        <input type="month" id="report-month" onchange="renderReport()" style="width:160px">
+      </div>
+      <div class="stats-grid" id="rep-stats"></div>
+      <div class="table-wrap" style="margin-top:20px">
+        <table class="tbl">
+          <thead><tr><th>スタッフ</th><th>部署</th><th>出勤日数</th><th>合計時間</th><th>平均/日</th></tr></thead>
+          <tbody id="rep-tbody"></tbody>
+        </table>
+        <div id="rep-empty" class="empty-state" style="display:none">データがありません</div>
+      </div>
+    </div>
+
+    <!-- STAFF MANAGEMENT -->
+    <div id="page-staff" class="page">
+      <div class="page-header"><div class="page-title">スタッフ管理</div></div>
+      <div class="table-wrap" style="margin-bottom:20px;padding:20px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:14px;color:var(--text2)">新規追加</div>
+        <div class="add-form">
+          <div class="form-field"><label>名前</label><input type="text" id="add-name" placeholder="田中 太郎"></div>
+          <div class="form-field"><label>社員ID</label><input type="text" id="add-id" placeholder="EMP001"></div>
+          <div class="form-field"><label>部署</label><input type="text" id="add-dept" placeholder="営業部"></div>
+          <button class="btn btn-accent" onclick="addStaff()" style="align-self:flex-end;white-space:nowrap">＋ 追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>名前</th><th>社員ID</th><th>部署</th><th>登録日</th><th></th></tr></thead>
+          <tbody id="staff-tbody"></tbody>
+        </table>
+        <div id="staff-empty" class="empty-state" style="display:none">スタッフが登録されていません</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const CFG_KEY='qr_admin_cfg';
+let SB_URL='',SB_KEY='',staffCache=[];
+let realtimeInterval=null;
+
+function getConfig(){ try{ return JSON.parse(localStorage.getItem(CFG_KEY))||{}; }catch(e){ return {}; } }
+function saveCfg(url,key){ localStorage.setItem(CFG_KEY,JSON.stringify({url,key})); }
+
+function saveConfig(){
+  const url=document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('cfg-key').value.trim();
+  if(!url||!key){ alert('入力してください'); return; }
+  saveCfg(url,key); startApp(url,key);
+}
+
+async function startApp(url,key){
+  SB_URL=url; SB_KEY=key;
+  document.getElementById('config-screen').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+  setDefaultMonth();
+  await refreshAll();
+  startRealtime();
+}
+
+async function sbFetch(path,opts={}){
+  const res=await fetch(SB_URL+'/rest/v1/'+path,{
+    ...opts,
+    headers:{
+      'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
+      'Content-Type':'application/json','Prefer':opts.prefer||'',
+      ...(opts.headers||{})
+    }
+  });
+  if(!res.ok){ const e=await res.text(); throw new Error(e); }
+  const ct=res.headers.get('content-type')||'';
+  return ct.includes('json')?res.json():null;
+}
+
+function setConn(ok){
+  document.getElementById('conn-dot').className='dot '+(ok?'dot-on':'dot-off');
+  document.getElementById('conn-label').textContent=ok?'接続中':'切断';
+}
+
+async function refreshAll(){
+  try{
+    staffCache=await sbFetch('staff?select=*&order=name.asc');
+    setConn(true);
+    refreshStaffSelects();
+    await renderDashboard();
+    renderStaffTable();
+  }catch(e){ setConn(false); }
+}
+
+function startRealtime(){
+  if(realtimeInterval) clearInterval(realtimeInterval);
+  realtimeInterval=setInterval(async()=>{
+    const active=document.querySelector('#page-realtime.active')||document.querySelector('#page-dashboard.active');
+    if(active) await renderDashboard();
+  },10000);
+}
+
+function initials(n){ const p=n.trim().split(/[\s　]+/); return p.length>=2?p[0][0]+p[1][0]:n.slice(0,2); }
+function fmtTime(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function fmtDate(d){ return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'); }
+function fmtDT(d){ return fmtDate(d)+' '+fmtTime(d); }
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='records'){ refreshRecordFilters(); filterRecords(); }
+  if(id==='report') renderReport();
+  if(id==='realtime') renderRealtime();
+}
+
+async function getTodayRecs(){
+  const today=new Date().toISOString().slice(0,10);
+  return await sbFetch(`attendance?time=gte.${today}T00:00:00&time=lte.${today}T23:59:59&order=time.desc`);
+}
+
+async function renderDashboard(){
+  try{
+    const recs=await getTodayRecs();
+    const map={};
+    recs.forEach(r=>{ map[r.staff_id]=r; });
+    let inC=0,outC=0;
+    staffCache.forEach(s=>{ const l=map[s.id]; if(!l) return; if(l.type==='in') inC++; else outC++; });
+    const abs=Math.max(0,staffCache.length-inC-outC);
+    document.getElementById('d-in').textContent=inC;
+    document.getElementById('d-out').textContent=outC;
+    document.getElementById('d-abs').textContent=abs;
+    document.getElementById('d-total').textContent=staffCache.length;
+    document.getElementById('dash-updated').textContent='更新: '+fmtTime(new Date());
+    renderStaffStatusTable('dash-tbody',map);
+    // also update realtime if active
+    if(document.querySelector('#page-realtime.active')){
+      document.getElementById('rt-in').textContent=inC;
+      document.getElementById('rt-out').textContent=outC;
+      document.getElementById('rt-abs').textContent=abs;
+      document.getElementById('rt-count').textContent=recs.length;
+      renderStaffStatusTable('rt-tbody',map);
+    }
+  }catch(e){ console.error(e); }
+}
+
+async function renderRealtime(){
+  try{
+    const recs=await getTodayRecs();
+    const map={};
+    recs.forEach(r=>{ map[r.staff_id]=r; });
+    let inC=0,outC=0;
+    staffCache.forEach(s=>{ const l=map[s.id]; if(!l) return; if(l.type==='in') inC++; else outC++; });
+    document.getElementById('rt-in').textContent=inC;
+    document.getElementById('rt-out').textContent=outC;
+    document.getElementById('rt-abs').textContent=Math.max(0,staffCache.length-inC-outC);
+    document.getElementById('rt-count').textContent=recs.length;
+    renderStaffStatusTable('rt-tbody',map);
+  }catch(e){}
+}
+
+function renderStaffStatusTable(tbodyId,map){
+  const tbody=document.getElementById(tbodyId);
+  if(!staffCache.length){ tbody.innerHTML='<tr><td colspan="4" class="empty-state">スタッフ未登録</td></tr>'; return; }
+  tbody.innerHTML=staffCache.map(s=>{
+    const l=map[s.id];
+    const badge=l?(l.type==='in'?'<span class="badge badge-in">出勤中</span>':'<span class="badge badge-out">退勤済</span>'):'<span class="badge badge-abs">未出勤</span>';
+    const t=l?fmtTime(new Date(l.time)):'-';
+    return `<tr><td><span class="avatar">${initials(s.name)}</span>${s.name}</td><td style="color:var(--text2)">${s.dept||'-'}</td><td>${badge}</td><td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${t}</td></tr>`;
+  }).join('');
+}
+
+function refreshStaffSelects(){
+  const opts='<option value="">全員</option>'+staffCache.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  const el=document.getElementById('rec-staff');
+  if(el) el.innerHTML=opts;
+}
+
+function refreshRecordFilters(){ refreshStaffSelects(); }
+
+async function filterRecords(){
+  const from=document.getElementById('rec-from').value;
+  const to=document.getElementById('rec-to').value;
+  const sid=document.getElementById('rec-staff').value;
+  let q='attendance?order=time.desc&limit=500';
+  if(from) q+=`&time=gte.${from}T00:00:00`;
+  if(to) q+=`&time=lte.${to}T23:59:59`;
+  if(sid) q+=`&staff_id=eq.${sid}`;
+  try{
+    const recs=await sbFetch(q);
+    const tbody=document.getElementById('rec-tbody');
+    const empty=document.getElementById('rec-empty');
+    if(!recs.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    tbody.innerHTML=recs.map(r=>`
+      <tr>
+        <td style="font-family:var(--mono);font-size:12px">${fmtDT(new Date(r.time))}</td>
+        <td><span class="avatar">${initials(r.staff_name)}</span>${r.staff_name}</td>
+        <td style="color:var(--text2);font-size:12px">${r.dept||'-'}</td>
+        <td><span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span></td>
+      </tr>`).join('');
+    window._currentRecs=recs;
+  }catch(e){ alert('取得エラー: '+e.message); }
+}
+
+function exportCSV(){
+  const recs=window._currentRecs||[];
+  if(!recs.length){ alert('データがありません'); return; }
+  const header='日時,スタッフ名,社員ID,部署,種別';
+  const rows=recs.map(r=>`${fmtDT(new Date(r.time))},${r.staff_name},${r.staff_id},${r.dept||''},${r.type==='in'?'出勤':'退勤'}`);
+  const csv='\uFEFF'+[header,...rows].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='出勤簿_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+function setDefaultMonth(){
+  const el=document.getElementById('report-month');
+  if(!el.value){ const n=new Date(); el.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+}
+
+async function renderReport(){
+  const month=document.getElementById('report-month').value;
+  if(!month) return;
+  const [y,m]=month.split('-').map(Number);
+  try{
+    const from=`${y}-${String(m).padStart(2,'0')}-01`;
+    const lastDay=new Date(y,m,0).getDate();
+    const to=`${y}-${String(m).padStart(2,'0')}-${lastDay}`;
+    const recs=await sbFetch(`attendance?time=gte.${from}T00:00:00&time=lte.${to}T23:59:59&order=time.asc`);
+    const inC=recs.filter(r=>r.type==='in').length;
+    document.getElementById('rep-stats').innerHTML=`
+      <div class="stat-card"><div class="stat-label">総打刻</div><div class="stat-val accent">${recs.length}</div></div>
+      <div class="stat-card"><div class="stat-label">出勤打刻</div><div class="stat-val green">${inC}</div></div>
+      <div class="stat-card"><div class="stat-label">退勤打刻</div><div class="stat-val red">${recs.length-inC}</div></div>
+      <div class="stat-card"><div class="stat-label">稼働スタッフ</div><div class="stat-val amber">${new Set(recs.map(r=>r.staff_id)).size}</div></div>`;
+    const tbody=document.getElementById('rep-tbody');
+    const empty=document.getElementById('rep-empty');
+    if(!staffCache.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    tbody.innerHTML=staffCache.map(s=>{
+      const sr=recs.filter(r=>r.staff_id===s.id);
+      const ins=sr.filter(r=>r.type==='in').map(r=>new Date(r.time));
+      const outs=sr.filter(r=>r.type==='out').map(r=>new Date(r.time));
+      const days=new Set(ins.map(d=>d.toDateString())).size;
+      let mins=0;
+      ins.forEach(it=>{ const ot=outs.find(o=>o>it&&o.toDateString()===it.toDateString()); if(ot) mins+=(ot-it)/60000; });
+      const h=Math.floor(mins/60),mn=Math.round(mins%60);
+      const avgH=days?Math.floor(mins/days/60):0, avgM=days?Math.round((mins/days)%60):0;
+      return `<tr><td><span class="avatar">${initials(s.name)}</span>${s.name}</td><td style="color:var(--text2)">${s.dept||'-'}</td><td>${days}日</td><td style="font-family:var(--mono)">${h}h ${mn}m</td><td style="font-family:var(--mono);color:var(--text2)">${avgH}h ${avgM}m</td></tr>`;
+    }).join('');
+  }catch(e){ console.error(e); }
+}
+
+async function addStaff(){
+  const name=document.getElementById('add-name').value.trim();
+  const id=document.getElementById('add-id').value.trim();
+  const dept=document.getElementById('add-dept').value.trim();
+  if(!name||!id){ alert('名前とIDは必須です'); return; }
+  try{
+    await sbFetch('staff',{method:'POST',prefer:'return=minimal',body:JSON.stringify({id,name,dept})});
+    document.getElementById('add-name').value='';
+    document.getElementById('add-id').value='';
+    document.getElementById('add-dept').value='';
+    await refreshAll();
+  }catch(e){ alert('追加エラー: '+e.message); }
+}
+
+async function removeStaff(id){
+  if(!confirm('このスタッフを削除しますか？関連する打刻記録も削除されます。')) return;
+  try{
+    await sbFetch(`staff?id=eq.${id}`,{method:'DELETE'});
+    await refreshAll();
+  }catch(e){ alert('削除エラー: '+e.message); }
+}
+
+function renderStaffTable(){
+  const tbody=document.getElementById('staff-tbody');
+  const empty=document.getElementById('staff-empty');
+  if(!staffCache.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=staffCache.map(s=>`
+    <tr>
+      <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${s.id}</td>
+      <td style="color:var(--text2)">${s.dept||'-'}</td>
+      <td style="font-size:12px;color:var(--text3)">${s.created_at?fmtDate(new Date(s.created_at)):'-'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeStaff('${s.id}')">削除</button></td>
+    </tr>`).join('');
+}
+
+function logout(){
+  if(!confirm('ログアウトしますか？')) return;
+  localStorage.removeItem(CFG_KEY);
+  location.reload();
+}
+
+// INIT
+(function(){
+  const cfg=getConfig();
+  if(cfg.url&&cfg.key){ startApp(cfg.url,cfg.key); }
+})();
+</script>
+</body>
+</html>

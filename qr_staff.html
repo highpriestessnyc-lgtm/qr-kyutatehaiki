@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="出勤打刻">
+<meta name="theme-color" content="#0f0f0f">
+<title>QR出勤打刻</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0f0f0;--text2:#888;--text3:#555;
+  --accent:#e8ff3e;--green:#3ddc84;--green-dim:rgba(61,220,132,0.12);
+  --red:#ff6b6b;--red-dim:rgba(255,107,107,0.12);
+  --radius:14px;--radius-sm:8px;
+  --font:'Noto Sans JP',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overscroll-behavior:none;}
+body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+/* CONFIG SCREEN */
+.config-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:32px 24px;gap:20px;
+}
+.config-logo{font-size:48px;margin-bottom:8px;}
+.config-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.config-sub{font-size:13px;color:var(--text2);text-align:center;line-height:1.6;}
+.config-card{
+  width:100%;background:var(--bg2);border:0.5px solid var(--border);
+  border-radius:var(--radius);padding:20px;
+}
+.form-field{margin-bottom:14px;}
+.form-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:6px;letter-spacing:0.5px;}
+input[type=text],input[type=url],input[type=password],input[type=datetime-local],select{
+  width:100%;background:var(--bg3);border:0.5px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);
+  font-size:14px;padding:12px 14px;outline:none;-webkit-appearance:none;
+  transition:border-color 0.2s;
+}
+input:focus,select:focus{border-color:var(--accent);}
+option{background:var(--bg3);}
+.btn{
+  width:100%;padding:15px;border-radius:var(--radius-sm);border:none;
+  font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;
+}
+.btn-accent{background:var(--accent);color:#0f0f0f;}
+.btn-accent:active{transform:scale(0.97);}
+.btn-ghost{background:var(--bg3);color:var(--text);border:0.5px solid var(--border2);}
+.btn-danger{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
+.btn-sm{padding:8px 14px;font-size:12px;width:auto;}
+
+/* MAIN APP */
+.app{display:none;flex-direction:column;height:100vh;}
+.nav-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  background:rgba(15,15,15,0.92);backdrop-filter:blur(20px);
+  border-top:0.5px solid var(--border);display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:10px 4px 8px;border:none;background:transparent;
+  cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;transition:color 0.2s;
+}
+.nav-item.active{color:var(--accent);}
+.nav-icon{font-size:22px;line-height:1;}
+.pages{flex:1;overflow:hidden;padding-bottom:80px;}
+.page{display:none;height:100%;overflow-y:auto;padding:20px 16px;}
+.page.active{display:block;}
+.page-header{margin-bottom:20px;}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.page-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.card-label{font-size:11px;color:var(--text2);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.stat-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;}
+.stat-val{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1;}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:4px;}
+
+/* SCANNER */
+.scanner-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:#000;flex-direction:column;
+}
+.scanner-overlay.open{display:flex;}
+.scanner-header{
+  padding:16px;display:flex;align-items:center;gap:12px;
+  background:rgba(0,0,0,0.7);
+}
+.scanner-title{font-size:16px;font-weight:700;flex:1;}
+.scanner-close{
+  background:rgba(255,255,255,0.1);border:none;color:var(--text);
+  width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.scanner-body{flex:1;position:relative;overflow:hidden;}
+#scanner-video{width:100%;height:100%;object-fit:cover;}
+.scan-frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.scan-frame-inner{width:220px;height:220px;position:relative;}
+.scan-frame-inner::before,.scan-frame-inner::after{
+  content:'';position:absolute;width:40px;height:40px;
+  border-color:var(--accent);border-style:solid;
+}
+.scan-frame-inner::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.scan-frame-inner::after{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.scan-frame-extra{position:absolute;width:40px;height:40px;border-color:var(--accent);border-style:solid;}
+.scan-frame-extra.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.scan-frame-extra.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.scan-line{
+  position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  animation:scanLine 2s linear infinite;top:0;
+}
+@keyframes scanLine{0%{top:10px;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:210px;opacity:0;}}
+.scanner-type-sel{display:flex;gap:8px;padding:12px 16px;background:rgba(0,0,0,0.8);}
+.scanner-type-btn{
+  flex:1;padding:10px;border-radius:var(--radius-sm);
+  border:0.5px solid var(--border2);background:var(--bg3);
+  color:var(--text2);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;
+}
+.scanner-type-btn.active.in{background:var(--green-dim);color:var(--green);border-color:rgba(61,220,132,0.4);}
+.scanner-type-btn.active.out{background:var(--red-dim);color:var(--red);border-color:rgba(255,107,107,0.4);}
+.scanner-hint{text-align:center;color:var(--text2);font-size:12px;padding:10px 16px 16px;background:rgba(0,0,0,0.8);}
+.scanner-result{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:20px;text-align:center;font-size:16px;font-weight:700;
+  animation:slideUp 0.25s ease;
+}
+.scanner-result.ok{background:rgba(61,220,132,0.92);color:#0f0f0f;}
+.scanner-result.ng{background:rgba(255,107,107,0.92);color:#0f0f0f;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.scan-result{
+  border-radius:var(--radius-sm);padding:14px;text-align:center;
+  font-size:14px;font-weight:500;margin-top:12px;animation:fadeIn 0.2s ease;
+}
+.scan-result.ok{background:var(--green-dim);color:var(--green);border:0.5px solid rgba(61,220,132,0.3);}
+.scan-result.ng{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.type-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.type-btn{
+  padding:14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);
+  background:var(--bg3);color:var(--text2);font-family:var(--font);
+  font-size:14px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:center;
+}
+.type-btn.active.in{background:var(--green-dim);color:var(--green);border-color:rgba(61,220,132,0.4);}
+.type-btn.active.out{background:var(--red-dim);color:var(--red);border-color:rgba(255,107,107,0.4);}
+.staff-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border);}
+.staff-row:last-child{border-bottom:none;}
+.avatar{
+  width:38px;height:38px;border-radius:50%;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;
+  border:0.5px solid var(--border2);
+}
+.staff-info{flex:1;min-width:0;}
+.staff-name{font-size:14px;font-weight:500;}
+.staff-dept{font-size:11px;color:var(--text2);margin-top:1px;}
+.badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;white-space:nowrap;}
+.badge-in{background:var(--green-dim);color:var(--green);}
+.badge-out{background:var(--red-dim);color:var(--red);}
+.badge-abs{background:rgba(255,255,255,0.06);color:var(--text3);}
+.time-str{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0;}
+#qr-canvas canvas,#qr-canvas img{border-radius:var(--radius-sm);}
+.cam-btn{
+  width:100%;padding:18px;border-radius:var(--radius);
+  background:var(--accent);color:#0f0f0f;border:none;
+  font-family:var(--font);font-size:17px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  gap:10px;margin-bottom:12px;
+}
+.cam-btn:active{transform:scale(0.97);}
+.divider{height:0.5px;background:var(--border);margin:16px 0;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:40px;margin-bottom:8px;}
+.status-dot{
+  width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;
+}
+.dot-online{background:var(--green);}
+.dot-offline{background:var(--red);}
+.conn-bar{
+  display:flex;align-items:center;font-size:11px;color:var(--text2);
+  padding:6px 12px;background:var(--bg2);border-radius:var(--radius-sm);
+  margin-bottom:12px;
+}
+</style>
+</head>
+<body>
+
+<!-- CONFIG SCREEN -->
+<div class="config-screen" id="config-screen">
+  <div class="config-logo">⏱</div>
+  <div class="config-title">QR出勤打刻</div>
+  <div class="config-sub">初回設定：SupabaseのURLとAPIキーを入力してください</div>
+  <div class="config-card">
+    <div class="form-field">
+      <label>SUPABASE URL</label>
+      <input type="url" id="cfg-url" placeholder="https://xxxx.supabase.co">
+    </div>
+    <div class="form-field">
+      <label>ANON KEY</label>
+      <input type="text" id="cfg-key" placeholder="eyJhbGci...">
+    </div>
+    <button class="btn btn-accent" onclick="saveConfig()">接続して開始</button>
+  </div>
+</div>
+
+<!-- SCANNER OVERLAY -->
+<div class="scanner-overlay" id="scanner-overlay">
+  <div class="scanner-header">
+    <div class="scanner-title">QRスキャン</div>
+    <button class="scanner-close" onclick="closeScanner()">✕</button>
+  </div>
+  <div class="scanner-type-sel">
+    <button class="scanner-type-btn active in" id="stype-in" onclick="setScannerType('in')">▲ 出勤</button>
+    <button class="scanner-type-btn out" id="stype-out" onclick="setScannerType('out')">▼ 退勤</button>
+  </div>
+  <div class="scanner-body">
+    <video id="scanner-video" playsinline muted></video>
+    <div class="scan-frame">
+      <div class="scan-frame-inner">
+        <div class="scan-frame-extra tr"></div>
+        <div class="scan-frame-extra bl"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+    <div id="scanner-result-overlay"></div>
+  </div>
+  <div class="scanner-hint">QRコードを枠内に合わせてください</div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="main-app">
+  <div class="pages">
+    <!-- SCAN -->
+    <div id="page-scan" class="page active">
+      <div class="page-header">
+        <div class="page-title">打刻</div>
+        <div class="page-sub" id="today-date"></div>
+      </div>
+      <div class="conn-bar" id="conn-bar">
+        <span class="status-dot dot-offline" id="conn-dot"></span>
+        <span id="conn-label">接続中...</span>
+      </div>
+      <button class="cam-btn" onclick="openScanner()">
+        <span style="font-size:24px">📷</span> カメラでQRスキャン
+      </button>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-val green" id="stat-in">0</div><div class="stat-lbl">出勤中</div></div>
+        <div class="stat-card"><div class="stat-val red" id="stat-out">0</div><div class="stat-lbl">退勤済</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--text2)" id="stat-abs">0</div><div class="stat-lbl">未出勤</div></div>
+      </div>
+      <div class="card">
+        <div class="card-label">手動打刻</div>
+        <div class="type-sel">
+          <button class="type-btn active in" id="type-in" onclick="setType('in')">▲ 出勤</button>
+          <button class="type-btn out" id="type-out" onclick="setType('out')">▼ 退勤</button>
+        </div>
+        <div class="form-field">
+          <label>スタッフ</label>
+          <select id="scan-staff"></select>
+        </div>
+        <div class="form-field">
+          <label>日時（空白＝現在時刻）</label>
+          <input type="datetime-local" id="scan-time">
+        </div>
+        <button class="btn btn-accent" onclick="doManualScan()">打刻する</button>
+        <div id="scan-result"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">本日のスタッフ</div>
+        <div id="today-list"></div>
+      </div>
+    </div>
+
+    <!-- QR PAGE -->
+    <div id="page-qr" class="page">
+      <div class="page-header">
+        <div class="page-title">QRコード</div>
+        <div class="page-sub">印刷して配布</div>
+      </div>
+      <div class="card">
+        <div class="form-field">
+          <label>スタッフを選択</label>
+          <select id="qr-select" onchange="generateQR()"></select>
+        </div>
+        <div id="qr-box" class="qr-wrap">
+          <div class="empty-state"><div class="empty-icon">▦</div>スタッフを選択してください</div>
+        </div>
+        <div id="qr-btns" style="display:none">
+          <button class="btn btn-ghost" onclick="printQR()">🖨 印刷する</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="page-settings" class="page">
+      <div class="page-header">
+        <div class="page-title">設定</div>
+        <div class="page-sub">接続情報</div>
+      </div>
+      <div class="card">
+        <div class="form-field"><label>SUPABASE URL</label><input type="url" id="set-url"></div>
+        <div class="form-field"><label>ANON KEY</label><input type="text" id="set-key"></div>
+        <button class="btn btn-accent" onclick="updateConfig()" style="margin-bottom:10px">保存して再接続</button>
+        <button class="btn btn-danger" onclick="resetConfig()">⏏ ログアウト</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav-bar">
+    <button class="nav-item active" onclick="showPage('scan',this)"><span class="nav-icon">⏱</span>打刻</button>
+    <button class="nav-item" onclick="showPage('qr',this)"><span class="nav-icon">▦</span>QR</button>
+    <button class="nav-item" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span>設定</button>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+// ---- CONFIG ----
+const CFG_KEY='qr_att_cfg';
+let SB_URL='', SB_KEY='', staffCache=[], scanType='in', scannerType='in';
+let videoStream=null, scannerActive=false, scanCooldown=false, animFrame=null;
+
+function getConfig(){ try{ return JSON.parse(localStorage.getItem(CFG_KEY))||{}; }catch(e){ return {}; } }
+function saveConfigData(url,key){ localStorage.setItem(CFG_KEY,JSON.stringify({url,key})); }
+
+function saveConfig(){
+  const url=document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('cfg-key').value.trim();
+  if(!url||!key){ alert('URLとキーを入力してください'); return; }
+  saveConfigData(url,key);
+  startApp(url,key);
+}
+
+function updateConfig(){
+  const url=document.getElementById('set-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('set-key').value.trim();
+  if(!url||!key){ alert('URLとキーを入力してください'); return; }
+  saveConfigData(url,key);
+  location.reload();
+}
+
+function resetConfig(){
+  if(!confirm('設定をリセットしますか？')) return;
+  localStorage.removeItem(CFG_KEY);
+  location.reload();
+}
+
+async function startApp(url,key){
+  SB_URL=url; SB_KEY=key;
+  document.getElementById('config-screen').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+  document.getElementById('set-url').value=url;
+  document.getElementById('set-key').value=key;
+  await loadStaff();
+  initScan();
+}
+
+// ---- API ----
+async function sbFetch(path, opts={}){
+  const res = await fetch(SB_URL+'/rest/v1/'+path, {
+    ...opts,
+    headers:{
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer '+SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer||'',
+      ...(opts.headers||{})
+    }
+  });
+  if(!res.ok){ const e=await res.text(); throw new Error(e); }
+  const ct=res.headers.get('content-type')||'';
+  return ct.includes('application/json')?res.json():null;
+}
+
+async function loadStaff(){
+  try{
+    staffCache=await sbFetch('staff?select=*&order=name.asc');
+    setConn(true);
+    refreshStaffSelects();
+    await refreshTodayData();
+  }catch(e){
+    setConn(false);
+    console.error(e);
+  }
+}
+
+async function refreshTodayData(){
+  const today=new Date().toISOString().slice(0,10);
+  try{
+    const recs=await sbFetch(`attendance?time=gte.${today}T00:00:00&time=lte.${today}T23:59:59&order=time.desc`);
+    renderTodayList(recs);
+  }catch(e){ console.error(e); }
+}
+
+async function insertAttendance(staffId, staffName, dept, type){
+  await sbFetch('attendance',{
+    method:'POST',
+    prefer:'return=minimal',
+    body:JSON.stringify({ staff_id:staffId, staff_name:staffName, dept, type, time:new Date().toISOString() })
+  });
+}
+
+function setConn(ok){
+  document.getElementById('conn-dot').className='status-dot '+(ok?'dot-online':'dot-offline');
+  document.getElementById('conn-label').textContent=ok?'Supabase 接続中':'オフライン';
+}
+
+function initials(n){ const p=n.trim().split(/[\s　]+/); return p.length>=2?p[0][0]+p[1][0]:n.slice(0,2); }
+function fmtTime(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function fmtDate(d){ return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'); }
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='scan') initScan();
+  if(id==='qr') refreshQRSelect();
+}
+
+function initScan(){
+  const now=new Date();
+  document.getElementById('today-date').textContent=fmtDate(now)+' '+['日','月','火','水','木','金','土'][now.getDay()]+'曜日';
+  refreshStaffSelects();
+  refreshTodayData();
+}
+
+function refreshStaffSelects(){
+  const opts='<option value="">-- 選択 --</option>'+staffCache.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('scan-staff').innerHTML=opts;
+  const qrSel=document.getElementById('qr-select');
+  if(qrSel) qrSel.innerHTML=opts;
+}
+
+function renderTodayList(recs){
+  const map={};
+  recs.forEach(r=>{ map[r.staff_id]=r; });
+  let inC=0,outC=0;
+  staffCache.forEach(s=>{ const l=map[s.id]; if(!l) return; if(l.type==='in') inC++; else outC++; });
+  document.getElementById('stat-in').textContent=inC;
+  document.getElementById('stat-out').textContent=outC;
+  document.getElementById('stat-abs').textContent=Math.max(0,staffCache.length-inC-outC);
+  const el=document.getElementById('today-list');
+  if(!staffCache.length){ el.innerHTML='<div class="empty-state">スタッフ未登録</div>'; return; }
+  el.innerHTML=staffCache.map(s=>{
+    const l=map[s.id];
+    const badge=l?(l.type==='in'?'<span class="badge badge-in">出勤中</span>':'<span class="badge badge-out">退勤済</span>'):'<span class="badge badge-abs">未出勤</span>';
+    const t=l?'<div class="time-str">'+fmtTime(new Date(l.time))+'</div>':'';
+    return `<div class="staff-row"><div class="avatar">${initials(s.name)}</div><div class="staff-info"><div class="staff-name">${s.name}</div><div class="staff-dept">${s.dept||''}</div>${t}</div>${badge}</div>`;
+  }).join('');
+}
+
+// CAMERA
+async function openScanner(){
+  const overlay=document.getElementById('scanner-overlay');
+  overlay.classList.add('open');
+  const video=document.getElementById('scanner-video');
+  try{
+    videoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    video.srcObject=videoStream;
+    await video.play();
+    scannerActive=true; scanCooldown=false;
+    tickScanner();
+  }catch(e){
+    alert('カメラへのアクセスが拒否されました。');
+    closeScanner();
+  }
+}
+
+function closeScanner(){
+  scannerActive=false;
+  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+  if(videoStream){ videoStream.getTracks().forEach(t=>t.stop()); videoStream=null; }
+  document.getElementById('scanner-overlay').classList.remove('open');
+  document.getElementById('scanner-result-overlay').innerHTML='';
+}
+
+function setScannerType(t){
+  scannerType=t;
+  document.getElementById('stype-in').className='scanner-type-btn'+(t==='in'?' active in':'');
+  document.getElementById('stype-out').className='scanner-type-btn out'+(t==='out'?' active':'');
+}
+
+function tickScanner(){
+  if(!scannerActive) return;
+  const video=document.getElementById('scanner-video');
+  if(video.readyState===video.HAVE_ENOUGH_DATA&&!scanCooldown){
+    const canvas=document.createElement('canvas');
+    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(video,0,0);
+    try{
+      const id=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const code=jsQR(id.data,id.width,id.height,{inversionAttempts:'dontInvert'});
+      if(code){ handleQRScan(code.data); return; }
+    }catch(e){}
+  }
+  animFrame=requestAnimationFrame(tickScanner);
+}
+
+async function handleQRScan(data){
+  scanCooldown=true;
+  let staffId=null;
+  try{ const obj=JSON.parse(data); staffId=obj.staffId||obj.id||null; }catch(e){ staffId=data.trim(); }
+  const staff=staffCache.find(s=>s.id===staffId);
+  if(!staff){
+    showScannerResult('❌ 未登録のQRコードです',false);
+    setTimeout(()=>{ scanCooldown=false; animFrame=requestAnimationFrame(tickScanner); },2000);
+    return;
+  }
+  try{
+    await insertAttendance(staff.id,staff.name,staff.dept||'',scannerType);
+    const label=scannerType==='in'?'▲ 出勤':'▼ 退勤';
+    showScannerResult(`${label} ${staff.name}\n${fmtTime(new Date())}`,true);
+    if(navigator.vibrate) navigator.vibrate([80,40,80]);
+    setTimeout(()=>{ closeScanner(); refreshTodayData(); },2200);
+  }catch(e){
+    showScannerResult('❌ 通信エラー。再試行してください',false);
+    setTimeout(()=>{ scanCooldown=false; animFrame=requestAnimationFrame(tickScanner); },2500);
+  }
+}
+
+function showScannerResult(msg,ok){
+  document.getElementById('scanner-result-overlay').innerHTML=`<div class="scanner-result ${ok?'ok':'ng'}">${msg.replace('\n','<br>')}</div>`;
+}
+
+function setType(t){
+  scanType=t;
+  document.getElementById('type-in').className='type-btn'+(t==='in'?' active in':'');
+  document.getElementById('type-out').className='type-btn out'+(t==='out'?' active':'');
+}
+
+async function doManualScan(){
+  const sid=document.getElementById('scan-staff').value;
+  if(!sid){ showScanResult('スタッフを選択してください',false); return; }
+  const staff=staffCache.find(s=>s.id===sid);
+  try{
+    await insertAttendance(staff.id,staff.name,staff.dept||'',scanType);
+    showScanResult((scanType==='in'?'▲ 出勤':'▼ 退勤')+' '+staff.name+' — '+fmtTime(new Date()),true);
+    document.getElementById('scan-time').value='';
+    refreshTodayData();
+  }catch(e){
+    showScanResult('❌ 通信エラー',false);
+  }
+}
+
+function showScanResult(msg,ok){
+  const el=document.getElementById('scan-result');
+  el.innerHTML=`<div class="scan-result ${ok?'ok':'ng'}">${msg}</div>`;
+  setTimeout(()=>{ el.innerHTML=''; },3500);
+}
+
+// QR
+function refreshQRSelect(){
+  document.getElementById('qr-select').innerHTML='<option value="">-- 選択 --</option>'+staffCache.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function generateQR(){
+  const sid=document.getElementById('qr-select').value;
+  const box=document.getElementById('qr-box');
+  const btns=document.getElementById('qr-btns');
+  if(!sid){ box.innerHTML='<div class="empty-state"><div class="empty-icon">▦</div>スタッフを選択してください</div>'; btns.style.display='none'; return; }
+  const staff=staffCache.find(s=>s.id===sid);
+  box.innerHTML=`<div style="font-size:16px;font-weight:700">${staff.name}</div><div id="qr-canvas"></div><div style="font-size:12px;color:var(--text2);font-family:var(--mono)">ID: ${staff.id}</div>`;
+  btns.style.display='block';
+  if(typeof QRCode!=='undefined'){
+    new QRCode(document.getElementById('qr-canvas'),{
+      text:JSON.stringify({staffId:staff.id,name:staff.name}),
+      width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M
+    });
+  }
+}
+
+function printQR(){
+  const sid=document.getElementById('qr-select').value; if(!sid) return;
+  const staff=staffCache.find(s=>s.id===sid);
+  const canvas=document.querySelector('#qr-canvas canvas')||document.querySelector('#qr-canvas img');
+  if(!canvas) return;
+  const src=canvas.tagName==='CANVAS'?canvas.toDataURL():canvas.src;
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${staff.name}</title><style>body{font-family:sans-serif;text-align:center;padding:60px;background:#fff;color:#000}h2{font-size:24px;margin-bottom:8px}p{color:#666;font-size:14px;margin-bottom:20px}img{display:block;margin:0 auto;width:220px;height:220px}footer{margin-top:20px;font-size:11px;color:#aaa}</style></head><body><h2>${staff.name}</h2><p>社員ID: ${staff.id}${staff.dept?' ／ '+staff.dept:''}</p><img src="${src}"><footer>QR出勤簿</footer><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+  win.document.close();
+}
+
+// INIT
+(function(){
+  // URLパラメータから自動接続
+  const params=new URLSearchParams(window.location.search);
+  const pUrl=params.get('url');
+  const pKey=params.get('key');
+  if(pUrl&&pKey){
+    saveConfigData(pUrl.replace(/\/$/,''), pKey);
+    startApp(pUrl.replace(/\/$/,''), pKey);
+    return;
+  }
+  const cfg=getConfig();
+  if(cfg.url&&cfg.key){ startApp(cfg.url,cfg.key); }
+  else { document.getElementById('config-screen').style.display='flex'; }
+})();
+</script>
+</body>
+</html>
