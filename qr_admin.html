@@ -22,7 +22,6 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html{background:var(--bg);}
 body{font-family:var(--font);color:var(--text);min-height:100vh;}
-
 .config-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;gap:20px;}
 .config-logo{font-size:56px;}
 .config-title{font-size:26px;font-weight:700;}
@@ -39,9 +38,9 @@ option{background:var(--bg3);}
 .btn-ghost{background:var(--bg3);color:var(--text);border:0.5px solid var(--border2);}
 .btn-ghost:hover{background:var(--bg4);}
 .btn-danger{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
+.btn-warn{background:var(--amber-dim);color:var(--amber);border:0.5px solid rgba(255,179,71,0.3);}
 .btn-sm{padding:8px 14px;font-size:12px;}
 .btn-full{width:100%;}
-
 .app{display:none;min-height:100vh;}
 .sidebar{width:220px;background:var(--bg2);border-right:0.5px solid var(--border);position:fixed;top:0;left:0;height:100vh;display:flex;flex-direction:column;padding:24px 0;}
 .sidebar-logo{padding:0 20px 24px;border-bottom:0.5px solid var(--border);}
@@ -58,13 +57,11 @@ option{background:var(--bg3);}
 .dot{width:7px;height:7px;border-radius:50%;}
 .dot-on{background:var(--green);}
 .dot-off{background:var(--red);}
-
 .main{margin-left:220px;flex:1;padding:32px;}
 .page{display:none;}
 .page.active{display:block;}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
 .page-title{font-size:24px;font-weight:700;letter-spacing:-0.5px;}
-
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
 .stat-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px 20px;}
 .stat-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
@@ -74,13 +71,12 @@ option{background:var(--bg3);}
 .stat-val.amber{color:var(--amber);}
 .stat-val.accent{color:var(--accent);}
 .stat-val.purple{color:var(--purple);}
-
 .panel{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
 .panel-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--border);}
 .panel-title{font-size:14px;font-weight:500;}
 .tbl{width:100%;border-collapse:collapse;font-size:13px;}
 .tbl th{text-align:left;padding:10px 16px;font-weight:500;color:var(--text2);border-bottom:0.5px solid var(--border);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;}
-.tbl td{padding:12px 16px;border-bottom:0.5px solid var(--border);}
+.tbl td{padding:11px 16px;border-bottom:0.5px solid var(--border);}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr:hover td{background:var(--bg3);}
 .badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
@@ -92,12 +88,27 @@ option{background:var(--bg3);}
 .filter-bar input,.filter-bar select{width:auto;font-size:13px;padding:8px 12px;}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse 2s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-.add-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:20px;}
-.add-form .form-field{margin-bottom:0;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
 .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;}
 .empty-state{text-align:center;padding:48px;color:var(--text3);font-size:14px;}
 .loc-badge{display:inline-block;font-size:11px;padding:3px 10px;background:var(--purple-dim);color:var(--purple);border-radius:20px;font-weight:700;}
+.dept-badge{display:inline-block;font-size:11px;padding:3px 10px;background:var(--accent-dim);color:var(--accent);border-radius:20px;font-weight:700;}
+
+/* DEPT TABS */
+.dept-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--border);}
+.dept-tab{padding:7px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;}
+.dept-tab.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,255,62,0.3);}
+.dept-tab:hover:not(.active){background:var(--bg3);color:var(--text);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;margin:20px;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+.modal-actions{display:flex;gap:8px;margin-top:20px;}
+
+.add-form{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:20px;}
+.add-form .form-field{margin-bottom:0;}
 @media(max-width:768px){
   .sidebar{width:100%;height:auto;position:relative;flex-direction:row;padding:12px 16px;border-right:none;border-bottom:0.5px solid var(--border);}
   .sidebar-logo{padding:0;border:none;}
@@ -121,6 +132,18 @@ option{background:var(--bg3);}
     <div class="form-field"><label>Supabase URL</label><input type="url" id="cfg-url" placeholder="https://xxxx.supabase.co"></div>
     <div class="form-field"><label>Anon Key</label><input type="text" id="cfg-key" placeholder="eyJhbGci..."></div>
     <button class="btn btn-accent btn-full" onclick="saveConfig()">接続する</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">編集</div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" style="flex:1" onclick="submitEdit()">保存</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">キャンセル</button>
+    </div>
   </div>
 </div>
 
@@ -159,9 +182,11 @@ option{background:var(--bg3);}
         <div class="stat-card"><div class="stat-label">未出勤</div><div class="stat-val amber" id="d-abs">—</div></div>
         <div class="stat-card"><div class="stat-label">総スタッフ</div><div class="stat-val accent" id="d-total">—</div></div>
       </div>
+      <!-- 事業部タブ -->
+      <div id="dash-dept-tabs" class="dept-tabs"></div>
       <div class="panel">
         <div class="panel-header"><div class="panel-title">本日のスタッフ状況</div><button class="btn btn-ghost btn-sm" onclick="refreshAll()">↻ 更新</button></div>
-        <table class="tbl"><thead><tr><th>スタッフ</th><th>部署</th><th>状態</th><th>現場</th><th>最終打刻</th></tr></thead><tbody id="dash-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>スタッフ</th><th>事業部</th><th>状態</th><th>現場</th><th>最終打刻</th></tr></thead><tbody id="dash-tbody"></tbody></table>
       </div>
     </div>
 
@@ -177,9 +202,10 @@ option{background:var(--bg3);}
         <div class="stat-card"><div class="stat-label">未出勤</div><div class="stat-val amber" id="rt-abs">—</div></div>
         <div class="stat-card"><div class="stat-label">本日打刻数</div><div class="stat-val accent" id="rt-count">—</div></div>
       </div>
+      <div id="rt-dept-tabs" class="dept-tabs"></div>
       <div class="panel">
         <div class="panel-header"><div class="panel-title">全スタッフ状況</div><div style="font-size:12px;color:var(--text2)" id="rt-updated"></div></div>
-        <table class="tbl"><thead><tr><th>スタッフ</th><th>部署</th><th>状態</th><th>現場</th><th>最終打刻</th></tr></thead><tbody id="rt-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>スタッフ</th><th>事業部</th><th>状態</th><th>現場</th><th>最終打刻</th></tr></thead><tbody id="rt-tbody"></tbody></table>
       </div>
     </div>
 
@@ -187,17 +213,18 @@ option{background:var(--bg3);}
     <div id="page-records" class="page">
       <div class="page-header">
         <div class="page-title">出勤簿</div>
-        <div class="filter-bar">
-          <input type="date" id="rec-from" style="width:140px">
-          <input type="date" id="rec-to" style="width:140px">
-          <select id="rec-staff" style="width:130px"></select>
-          <select id="rec-loc" style="width:130px"></select>
-          <button class="btn btn-ghost btn-sm" onclick="filterRecords()">絞り込み</button>
-          <button class="btn btn-accent btn-sm" onclick="exportCSV()">↓ CSV</button>
-        </div>
+      </div>
+      <div class="filter-bar" style="margin-bottom:12px">
+        <input type="date" id="rec-from" style="width:140px">
+        <input type="date" id="rec-to" style="width:140px">
+        <select id="rec-dept" style="width:130px"></select>
+        <select id="rec-staff" style="width:130px"></select>
+        <select id="rec-loc" style="width:130px"></select>
+        <button class="btn btn-ghost btn-sm" onclick="filterRecords()">絞り込み</button>
+        <button class="btn btn-accent btn-sm" onclick="exportCSV()">↓ CSV出力</button>
       </div>
       <div class="panel">
-        <table class="tbl"><thead><tr><th>日時</th><th>スタッフ</th><th>部署</th><th>現場</th><th>種別</th></tr></thead><tbody id="rec-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>日時</th><th>スタッフ</th><th>事業部</th><th>現場</th><th>種別</th></tr></thead><tbody id="rec-tbody"></tbody></table>
         <div id="rec-empty" class="empty-state" style="display:none">データがありません</div>
       </div>
     </div>
@@ -206,11 +233,14 @@ option{background:var(--bg3);}
     <div id="page-report" class="page">
       <div class="page-header">
         <div class="page-title">月次レポート</div>
-        <input type="month" id="report-month" onchange="renderReport()" style="width:160px">
+        <div class="filter-bar">
+          <input type="month" id="report-month" onchange="renderReport()" style="width:160px">
+          <select id="rep-dept-filter" onchange="renderReport()" style="width:140px"><option value="">全事業部</option></select>
+        </div>
       </div>
       <div class="stats-grid" id="rep-stats"></div>
       <div class="panel" style="margin-top:20px">
-        <table class="tbl"><thead><tr><th>スタッフ</th><th>部署</th><th>出勤日数</th><th>現場数</th><th>合計時間</th><th>平均/日</th></tr></thead><tbody id="rep-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>スタッフ</th><th>事業部</th><th>出勤日数</th><th>現場数</th><th>合計時間</th><th>平均/日</th></tr></thead><tbody id="rep-tbody"></tbody></table>
         <div id="rep-empty" class="empty-state" style="display:none">データがありません</div>
       </div>
     </div>
@@ -236,9 +266,7 @@ option{background:var(--bg3);}
           <div class="panel" style="padding:20px">
             <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:14px">QRコード発行</div>
             <div class="form-field"><label>現場を選択</label><select id="qr-loc-select" onchange="generateLocQR()"><option value="">-- 選択 --</option></select></div>
-            <div id="qr-loc-box" class="qr-wrap">
-              <div class="empty-state">現場を選択するとQRが表示されます</div>
-            </div>
+            <div id="qr-loc-box" class="qr-wrap"><div class="empty-state">現場を選択するとQRが表示されます</div></div>
             <div id="qr-loc-btns" style="display:none">
               <button class="btn btn-ghost btn-full" onclick="printLocQR()">🖨 印刷する</button>
             </div>
@@ -255,12 +283,14 @@ option{background:var(--bg3);}
         <div class="add-form">
           <div class="form-field"><label>名前</label><input type="text" id="add-name" placeholder="田中 太郎"></div>
           <div class="form-field"><label>社員ID</label><input type="text" id="add-id" placeholder="EMP001"></div>
-          <div class="form-field"><label>部署</label><input type="text" id="add-dept" placeholder="営業部"></div>
+          <div class="form-field"><label>事業部</label><input type="text" id="add-dept" placeholder="営業部"></div>
           <button class="btn btn-accent" onclick="addStaff()" style="align-self:flex-end;white-space:nowrap">＋ 追加</button>
         </div>
       </div>
+      <!-- 事業部タブ -->
+      <div id="staff-dept-tabs" class="dept-tabs"></div>
       <div class="panel">
-        <table class="tbl"><thead><tr><th>名前</th><th>社員ID</th><th>部署</th><th>登録日</th><th></th></tr></thead><tbody id="staff-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>名前</th><th>社員ID</th><th>事業部</th><th>登録日</th><th></th></tr></thead><tbody id="staff-tbody"></tbody></table>
         <div id="staff-empty" class="empty-state" style="display:none">スタッフが登録されていません</div>
       </div>
     </div>
@@ -272,6 +302,8 @@ option{background:var(--bg3);}
 const CFG_KEY='qr_admin_cfg2';
 let SB_URL='',SB_KEY='',staffCache=[],locCache=[];
 let realtimeInterval=null;
+let editTarget=null, editType=null;
+let activeDeptFilter={dash:'全員',rt:'全員',staff:'全員'};
 
 function getConfig(){ try{ return JSON.parse(localStorage.getItem(CFG_KEY))||{}; }catch(e){ return {}; } }
 function saveCfg(url,key){ localStorage.setItem(CFG_KEY,JSON.stringify({url,key})); }
@@ -295,11 +327,7 @@ async function startApp(url,key){
 async function sbFetch(path,opts={}){
   const res=await fetch(SB_URL+'/rest/v1/'+path,{
     ...opts,
-    headers:{
-      'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
-      'Content-Type':'application/json','Prefer':opts.prefer||'',
-      ...(opts.headers||{})
-    }
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':opts.prefer||'',...(opts.headers||{})}
   });
   if(!res.ok){ const e=await res.text(); throw new Error(e); }
   const ct=res.headers.get('content-type')||'';
@@ -321,6 +349,7 @@ async function refreshAll(){
     refreshFilters();
     renderLocTable();
     renderStaffTable();
+    renderDeptTabs();
     await renderDashboard();
   }catch(e){ setConn(false); console.error(e); }
 }
@@ -328,9 +357,7 @@ async function refreshAll(){
 function startRealtime(){
   if(realtimeInterval) clearInterval(realtimeInterval);
   realtimeInterval=setInterval(async()=>{
-    if(document.querySelector('#page-realtime.active')||document.querySelector('#page-dashboard.active')){
-      await renderDashboard();
-    }
+    if(document.querySelector('#page-realtime.active')||document.querySelector('#page-dashboard.active')) await renderDashboard();
   },10000);
 }
 
@@ -338,6 +365,39 @@ function initials(n){ const p=n.trim().split(/[\s　]+/); return p.length>=2?p[0
 function fmtTime(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function fmtDate(d){ return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'); }
 function fmtDT(d){ return fmtDate(d)+' '+fmtTime(d); }
+
+function getDepts(){
+  const depts=['全員',...new Set(staffCache.map(s=>s.dept||'未設定').filter(Boolean))].sort((a,b)=>a==='全員'?-1:b==='全員'?1:a.localeCompare(b,'ja'));
+  return depts;
+}
+
+function renderDeptTabs(){
+  const depts=getDepts();
+  ['dash','rt','staff'].forEach(scope=>{
+    const el=document.getElementById(scope+'-dept-tabs');
+    if(!el) return;
+    el.innerHTML=depts.map(d=>`<button class="dept-tab${activeDeptFilter[scope]===d?' active':''}" onclick="setDeptFilter('${scope}','${d}')">${d}</button>`).join('');
+  });
+  // レポートフィルター更新
+  const repFilter=document.getElementById('rep-dept-filter');
+  if(repFilter){
+    const cur=repFilter.value;
+    repFilter.innerHTML='<option value="">全事業部</option>'+depts.filter(d=>d!=='全員').map(d=>`<option value="${d}"${cur===d?' selected':''}>${d}</option>`).join('');
+  }
+  // 出勤簿フィルター更新
+  const recDept=document.getElementById('rec-dept');
+  if(recDept){
+    const cur=recDept.value;
+    recDept.innerHTML='<option value="">全事業部</option>'+depts.filter(d=>d!=='全員').map(d=>`<option value="${d}"${cur===d?' selected':''}>${d}</option>`).join('');
+  }
+}
+
+function setDeptFilter(scope,dept){
+  activeDeptFilter[scope]=dept;
+  renderDeptTabs();
+  if(scope==='staff') renderStaffTable();
+  if(scope==='dash'||scope==='rt') renderDashboard();
+}
 
 function showPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -366,26 +426,28 @@ async function renderDashboard(){
     ['d-in','rt-in'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=inC; });
     ['d-out','rt-out'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=outC; });
     ['d-abs','rt-abs'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=abs; });
-    const dtotal=document.getElementById('d-total'); if(dtotal) dtotal.textContent=staffCache.length;
-    const rtcount=document.getElementById('rt-count'); if(rtcount) rtcount.textContent=recs.length;
+    const dt=document.getElementById('d-total'); if(dt) dt.textContent=staffCache.length;
+    const rc=document.getElementById('rt-count'); if(rc) rc.textContent=recs.length;
     const now=fmtTime(new Date());
-    const du=document.getElementById('dash-updated'); if(du) du.textContent='更新: '+now;
-    const rtu=document.getElementById('rt-updated'); if(rtu) rtu.textContent='更新: '+now;
-    renderStaffStatusTable('dash-tbody',map);
-    renderStaffStatusTable('rt-tbody',map);
+    ['dash-updated','rt-updated'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='更新: '+now; });
+    renderStaffStatusTable('dash-tbody',map,'dash');
+    renderStaffStatusTable('rt-tbody',map,'rt');
   }catch(e){ console.error(e); }
 }
 
-function renderStaffStatusTable(tbodyId,map){
+function renderStaffStatusTable(tbodyId,map,scope){
   const tbody=document.getElementById(tbodyId);
   if(!tbody) return;
-  if(!staffCache.length){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">スタッフ未登録</td></tr>'; return; }
-  tbody.innerHTML=staffCache.map(s=>{
+  const dept=activeDeptFilter[scope]||'全員';
+  const filtered=dept==='全員'?staffCache:staffCache.filter(s=>(s.dept||'未設定')===dept);
+  if(!filtered.length){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">該当スタッフなし</td></tr>'; return; }
+  tbody.innerHTML=filtered.map(s=>{
     const l=map[s.id];
     const badge=l?(l.type==='in'?'<span class="badge badge-in">出勤中</span>':'<span class="badge badge-out">退勤済</span>'):'<span class="badge badge-abs">未出勤</span>';
     const t=l?fmtTime(new Date(l.time)):'-';
     const loc=l&&l.location_name?`<span class="loc-badge">${l.location_name}</span>`:'-';
-    return `<tr><td><span class="avatar">${initials(s.name)}</span>${s.name}</td><td style="color:var(--text2)">${s.dept||'-'}</td><td>${badge}</td><td>${loc}</td><td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${t}</td></tr>`;
+    const deptBadge=s.dept?`<span class="dept-badge">${s.dept}</span>`:'<span style="color:var(--text3)">-</span>';
+    return `<tr><td><span class="avatar">${initials(s.name)}</span>${s.name}</td><td>${deptBadge}</td><td>${badge}</td><td>${loc}</td><td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${t}</td></tr>`;
   }).join('');
 }
 
@@ -394,6 +456,7 @@ function refreshFilters(){
   const lOpts='<option value="">全現場</option>'+locCache.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
   const rs=document.getElementById('rec-staff'); if(rs) rs.innerHTML=sOpts;
   const rl=document.getElementById('rec-loc'); if(rl) rl.innerHTML=lOpts;
+  renderDeptTabs();
 }
 
 async function filterRecords(){
@@ -401,13 +464,15 @@ async function filterRecords(){
   const to=document.getElementById('rec-to').value;
   const sid=document.getElementById('rec-staff').value;
   const lid=document.getElementById('rec-loc').value;
+  const dept=document.getElementById('rec-dept').value;
   let q='attendance?order=time.desc&limit=1000';
   if(from) q+=`&time=gte.${from}T00:00:00`;
   if(to) q+=`&time=lte.${to}T23:59:59`;
   if(sid) q+=`&staff_id=eq.${sid}`;
   if(lid) q+=`&location_id=eq.${lid}`;
+  if(dept) q+=`&dept=eq.${encodeURIComponent(dept)}`;
   try{
-    const recs=await sbFetch(q);
+    let recs=await sbFetch(q);
     const tbody=document.getElementById('rec-tbody');
     const empty=document.getElementById('rec-empty');
     if(!recs.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
@@ -416,7 +481,7 @@ async function filterRecords(){
       <tr>
         <td style="font-family:var(--mono);font-size:12px">${fmtDT(new Date(r.time))}</td>
         <td><span class="avatar">${initials(r.staff_name)}</span>${r.staff_name}</td>
-        <td style="color:var(--text2);font-size:12px">${r.dept||'-'}</td>
+        <td>${r.dept?`<span class="dept-badge">${r.dept}</span>`:'-'}</td>
         <td>${r.location_name?`<span class="loc-badge">${r.location_name}</span>`:'-'}</td>
         <td><span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span></td>
       </tr>`).join('');
@@ -427,7 +492,7 @@ async function filterRecords(){
 function exportCSV(){
   const recs=window._currentRecs||[];
   if(!recs.length){ alert('データがありません'); return; }
-  const header='日時,スタッフ名,社員ID,部署,現場,種別';
+  const header='日時,スタッフ名,社員ID,事業部,現場,種別';
   const rows=recs.map(r=>`${fmtDT(new Date(r.time))},${r.staff_name},${r.staff_id},${r.dept||''},${r.location_name||''},${r.type==='in'?'出勤':'退勤'}`);
   const csv='\uFEFF'+[header,...rows].join('\n');
   const a=document.createElement('a');
@@ -443,6 +508,7 @@ function setDefaultMonth(){
 
 async function renderReport(){
   const month=document.getElementById('report-month').value;
+  const deptFilter=document.getElementById('rep-dept-filter').value;
   if(!month) return;
   const [y,m]=month.split('-').map(Number);
   const from=`${y}-${String(m).padStart(2,'0')}-01`;
@@ -459,24 +525,31 @@ async function renderReport(){
       <div class="stat-card"><div class="stat-label">稼働現場数</div><div class="stat-val purple">${locs}</div></div>`;
     const tbody=document.getElementById('rep-tbody');
     const empty=document.getElementById('rep-empty');
-    if(!staffCache.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+    let filteredStaff=deptFilter?staffCache.filter(s=>(s.dept||'')=== deptFilter):staffCache;
+    if(!filteredStaff.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
-    tbody.innerHTML=staffCache.map(s=>{
+    tbody.innerHTML=filteredStaff.map(s=>{
       const sr=recs.filter(r=>r.staff_id===s.id);
       const ins=sr.filter(r=>r.type==='in').map(r=>new Date(r.time));
       const outs=sr.filter(r=>r.type==='out').map(r=>new Date(r.time));
       const days=new Set(ins.map(d=>d.toDateString())).size;
-      const locsCount=new Set(sr.map(r=>r.location_id)).size;
+      const locsCount=new Set(sr.map(r=>r.location_id).filter(Boolean)).size;
       let mins=0;
       ins.forEach(it=>{ const ot=outs.find(o=>o>it&&o.toDateString()===it.toDateString()); if(ot) mins+=(ot-it)/60000; });
       const h=Math.floor(mins/60),mn=Math.round(mins%60);
       const avgH=days?Math.floor(mins/days/60):0,avgM=days?Math.round((mins/days)%60):0;
-      return `<tr><td><span class="avatar">${initials(s.name)}</span>${s.name}</td><td style="color:var(--text2)">${s.dept||'-'}</td><td>${days}日</td><td>${locsCount}現場</td><td style="font-family:var(--mono)">${h}h ${mn}m</td><td style="font-family:var(--mono);color:var(--text2)">${avgH}h ${avgM}m</td></tr>`;
+      return `<tr>
+        <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
+        <td>${s.dept?`<span class="dept-badge">${s.dept}</span>`:'-'}</td>
+        <td>${days}日</td><td>${locsCount}現場</td>
+        <td style="font-family:var(--mono)">${h}h ${mn}m</td>
+        <td style="font-family:var(--mono);color:var(--text2)">${avgH}h ${avgM}m</td>
+      </tr>`;
     }).join('');
   }catch(e){ console.error(e); }
 }
 
-// LOCATIONS
+// ---- LOCATIONS ----
 async function addLocation(){
   const name=document.getElementById('loc-name').value.trim();
   const address=document.getElementById('loc-address').value.trim();
@@ -487,8 +560,7 @@ async function addLocation(){
     document.getElementById('loc-name').value='';
     document.getElementById('loc-address').value='';
     locCache=await sbFetch('locations?select=*&order=name.asc');
-    renderLocTable();
-    refreshLocQRSelect();
+    renderLocTable(); refreshLocQRSelect();
   }catch(e){ alert('追加エラー: '+e.message); }
 }
 
@@ -501,7 +573,10 @@ function renderLocTable(){
     <tr>
       <td><span class="loc-badge">${l.name}</span></td>
       <td style="color:var(--text2);font-size:12px">${l.address||'-'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="removeLocation('${l.id}')">削除</button></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-warn btn-sm" onclick="openEditModal('location','${l.id}')">✏️ 編集</button>
+        <button class="btn btn-danger btn-sm" onclick="removeLocation('${l.id}')">削除</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -550,8 +625,7 @@ function printLocQR(){
   img{display:block;margin:0 auto;width:240px;height:240px}
   .hint{margin-top:20px;font-size:13px;color:#999;border-top:1px solid #eee;padding-top:16px}
   </style></head><body>
-  <h2>${loc.name}</h2>
-  <p>${loc.address||'出勤・退勤打刻用QRコード'}</p>
+  <h2>${loc.name}</h2><p>${loc.address||'出勤・退勤打刻用QRコード'}</p>
   <img src="${src}">
   <div class="hint">このQRコードをスキャンして出勤・退勤を記録してください</div>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>
@@ -559,7 +633,7 @@ function printLocQR(){
   win.document.close();
 }
 
-// STAFF
+// ---- STAFF ----
 async function addStaff(){
   const name=document.getElementById('add-name').value.trim();
   const id=document.getElementById('add-id').value.trim();
@@ -585,34 +659,81 @@ async function removeStaff(id){
 function renderStaffTable(){
   const tbody=document.getElementById('staff-tbody');
   const empty=document.getElementById('staff-empty');
-  if(!staffCache.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  const dept=activeDeptFilter['staff']||'全員';
+  const filtered=dept==='全員'?staffCache:staffCache.filter(s=>(s.dept||'未設定')===dept);
+  if(!filtered.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  tbody.innerHTML=staffCache.map(s=>`
+  tbody.innerHTML=filtered.map(s=>`
     <tr>
       <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
       <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${s.id}</td>
-      <td style="color:var(--text2)">${s.dept||'-'}</td>
+      <td>${s.dept?`<span class="dept-badge">${s.dept}</span>`:'-'}</td>
       <td style="font-size:12px;color:var(--text3)">${s.created_at?fmtDate(new Date(s.created_at)):'-'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="removeStaff('${s.id}')">削除</button></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-warn btn-sm" onclick="openEditModal('staff','${s.id}')">✏️ 編集</button>
+        <button class="btn btn-danger btn-sm" onclick="removeStaff('${s.id}')">削除</button>
+      </td>
     </tr>`).join('');
+}
+
+// ---- EDIT MODAL ----
+function openEditModal(type, id){
+  editType=type; editTarget=id;
+  const modal=document.getElementById('edit-modal');
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  if(type==='staff'){
+    const s=staffCache.find(x=>x.id===id);
+    title.textContent='スタッフ編集';
+    body.innerHTML=`
+      <div class="form-field"><label>名前</label><input type="text" id="edit-name" value="${s.name}"></div>
+      <div class="form-field"><label>社員ID</label><input type="text" id="edit-id" value="${s.id}" disabled style="opacity:0.5"></div>
+      <div class="form-field"><label>事業部</label><input type="text" id="edit-dept" value="${s.dept||''}"></div>`;
+  } else if(type==='location'){
+    const l=locCache.find(x=>x.id===id);
+    title.textContent='現場編集';
+    body.innerHTML=`
+      <div class="form-field"><label>現場名</label><input type="text" id="edit-loc-name" value="${l.name}"></div>
+      <div class="form-field"><label>住所・メモ</label><input type="text" id="edit-loc-address" value="${l.address||''}"></div>`;
+  }
+  modal.classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('edit-modal').classList.remove('open');
+  editTarget=null; editType=null;
+}
+
+async function submitEdit(){
+  try{
+    if(editType==='staff'){
+      const name=document.getElementById('edit-name').value.trim();
+      const dept=document.getElementById('edit-dept').value.trim();
+      if(!name){ alert('名前は必須です'); return; }
+      await sbFetch(`staff?id=eq.${editTarget}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({name,dept})});
+      await refreshAll();
+    } else if(editType==='location'){
+      const name=document.getElementById('edit-loc-name').value.trim();
+      const address=document.getElementById('edit-loc-address').value.trim();
+      if(!name){ alert('現場名は必須です'); return; }
+      await sbFetch(`locations?id=eq.${editTarget}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({name,address})});
+      locCache=await sbFetch('locations?select=*&order=name.asc');
+      renderLocTable(); refreshLocQRSelect();
+    }
+    closeModal();
+  }catch(e){ alert('更新エラー: '+e.message); }
 }
 
 function logout(){
   if(!confirm('ログアウトしますか？')) return;
-  localStorage.removeItem(CFG_KEY);
-  location.reload();
+  localStorage.removeItem(CFG_KEY); location.reload();
 }
 
 // INIT
 (function(){
   const params=new URLSearchParams(window.location.search);
-  const pUrl=params.get('url');
-  const pKey=params.get('key');
-  if(pUrl&&pKey){
-    saveCfg(pUrl.replace(/\/$/,''),pKey);
-    startApp(pUrl.replace(/\/$/,''),pKey);
-    return;
-  }
+  const pUrl=params.get('url'), pKey=params.get('key');
+  if(pUrl&&pKey){ saveCfg(pUrl.replace(/\/$/,''),pKey); startApp(pUrl.replace(/\/$/,''),pKey); return; }
   const cfg=getConfig();
   if(cfg.url&&cfg.key){ startApp(cfg.url,cfg.key); }
 })();

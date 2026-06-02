@@ -23,21 +23,15 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overscroll-behavior:none;}
 body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
-
 .screen{display:none;flex-direction:column;min-height:100vh;padding:40px 24px;align-items:center;justify-content:center;gap:16px;}
 .screen.active{display:flex;}
 .logo{font-size:52px;margin-bottom:4px;}
 .screen-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
 .screen-sub{font-size:13px;color:var(--text2);text-align:center;line-height:1.6;}
-.card{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:0;}
+.card{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;}
 .form-field{margin-bottom:14px;}
 .form-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase;}
-input,select{
-  width:100%;background:var(--bg3);border:0.5px solid var(--border2);
-  border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);
-  font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;
-  transition:border-color 0.2s;
-}
+input,select{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none;transition:border-color 0.2s;}
 input:focus,select:focus{border-color:var(--accent);}
 option{background:var(--bg3);}
 .btn{width:100%;padding:15px;border-radius:var(--radius-sm);border:none;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;}
@@ -47,8 +41,6 @@ option{background:var(--bg3);}
 .btn-ghost:active{transform:scale(0.97);}
 .btn-danger{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
 .btn-sm{padding:10px 16px;font-size:13px;width:auto;}
-
-/* MAIN */
 .main-screen{display:none;flex-direction:column;height:100vh;}
 .main-screen.active{display:flex;}
 .pages{flex:1;overflow:hidden;padding-bottom:80px;}
@@ -57,103 +49,70 @@ option{background:var(--bg3);}
 .page-header{margin-bottom:24px;}
 .page-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
 .page-sub{font-size:12px;color:var(--text2);margin-top:3px;}
-
-/* NAV */
-.nav-bar{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:100%;max-width:480px;
-  background:rgba(15,15,15,0.94);backdrop-filter:blur(20px);
-  border-top:0.5px solid var(--border);display:flex;z-index:100;
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.nav-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  gap:3px;padding:10px 4px 8px;border:none;background:transparent;
-  cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;transition:color 0.2s;
-}
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(15,15,15,0.94);backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;border:none;background:transparent;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;transition:color 0.2s;}
 .nav-item.active{color:var(--accent);}
 .nav-icon{font-size:22px;line-height:1;}
-
-/* SCAN BUTTON */
-.scan-btn{
-  width:100%;padding:22px;border-radius:var(--radius);
-  background:var(--accent);color:#0f0f0f;border:none;
-  font-family:var(--font);font-size:18px;font-weight:700;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  gap:12px;margin-bottom:14px;
-}
+.scan-btn{width:100%;padding:22px;border-radius:var(--radius);background:var(--accent);color:#0f0f0f;border:none;font-family:var(--font);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px;}
 .scan-btn:active{transform:scale(0.97);}
-
-/* TYPE SEL */
 .type-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
-.type-btn{
-  padding:16px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);
-  background:var(--bg3);color:var(--text2);font-family:var(--font);
-  font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:center;
-}
+.type-btn{padding:16px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:center;}
 .type-btn.active.in{background:var(--green-dim);color:var(--green);border-color:rgba(61,220,132,0.4);}
 .type-btn.active.out{background:var(--red-dim);color:var(--red);border-color:rgba(255,107,107,0.4);}
-
 /* SCANNER */
 .scanner-overlay{display:none;position:fixed;inset:0;z-index:200;background:#000;flex-direction:column;}
 .scanner-overlay.open{display:flex;}
-.scanner-header{padding:16px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.8);}
+.scanner-header{padding:16px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.85);}
 .scanner-title{font-size:16px;font-weight:700;flex:1;}
 .scanner-close{background:rgba(255,255,255,0.1);border:none;color:var(--text);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .scanner-body{flex:1;position:relative;overflow:hidden;}
 #scanner-video{width:100%;height:100%;object-fit:cover;}
 .scan-frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.scan-frame-inner{width:220px;height:220px;position:relative;}
-.scan-frame-inner::before,.scan-frame-inner::after{content:'';position:absolute;width:40px;height:40px;border-color:var(--accent);border-style:solid;}
+.scan-frame-inner{width:240px;height:240px;position:relative;}
+.scan-frame-inner::before,.scan-frame-inner::after{content:'';position:absolute;width:44px;height:44px;border-color:var(--accent);border-style:solid;}
 .scan-frame-inner::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
 .scan-frame-inner::after{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
-.scan-corner{position:absolute;width:40px;height:40px;border-color:var(--accent);border-style:solid;}
+.scan-corner{position:absolute;width:44px;height:44px;border-color:var(--accent);border-style:solid;}
 .scan-corner.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
 .scan-corner.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
-.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scanLine 2s linear infinite;}
-@keyframes scanLine{0%{top:10px;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:210px;opacity:0;}}
-.scanner-info{background:rgba(0,0,0,0.85);padding:14px 16px;text-align:center;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scanLine 1.5s ease-in-out infinite;}
+@keyframes scanLine{0%{top:10px;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:230px;opacity:0;}}
+.scanner-info{background:rgba(0,0,0,0.85);padding:12px 16px;text-align:center;}
 .scanner-info-name{font-size:15px;font-weight:700;color:var(--accent);}
 .scanner-info-type{font-size:12px;color:var(--text2);margin-top:2px;}
 .scanner-hint{text-align:center;color:var(--text2);font-size:12px;padding:10px 16px 20px;background:rgba(0,0,0,0.85);}
-.scanner-result{position:absolute;bottom:0;left:0;right:0;padding:24px;text-align:center;font-size:17px;font-weight:700;animation:slideUp 0.25s ease;}
+.scanner-result{position:absolute;bottom:0;left:0;right:0;padding:24px;text-align:center;font-size:17px;font-weight:700;animation:slideUp 0.2s ease;}
 .scanner-result.ok{background:rgba(61,220,132,0.95);color:#0f0f0f;}
 .scanner-result.ng{background:rgba(255,107,107,0.95);color:#0f0f0f;}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-
-/* CARDS */
-.info-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
-.info-card-label{font-size:11px;color:var(--text2);margin-bottom:4px;letter-spacing:0.5px;text-transform:uppercase;}
-.info-card-value{font-size:16px;font-weight:500;}
-
-/* RESULT */
 .scan-result{border-radius:var(--radius-sm);padding:14px;text-align:center;font-size:14px;font-weight:500;margin-top:12px;animation:fadeIn 0.2s ease;}
 .scan-result.ok{background:var(--green-dim);color:var(--green);border:0.5px solid rgba(61,220,132,0.3);}
 .scan-result.ng{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
-
+.info-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.info-card-label{font-size:11px;color:var(--text2);margin-bottom:4px;letter-spacing:0.5px;text-transform:uppercase;}
+.info-card-value{font-size:16px;font-weight:500;}
 .conn-bar{display:flex;align-items:center;font-size:11px;color:var(--text2);padding:6px 10px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:14px;gap:6px;}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .dot-on{background:var(--green);}
 .dot-off{background:var(--red);}
 .divider{height:0.5px;background:var(--border);margin:16px 0;}
 .empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
-
-/* HISTORY */
 .hist-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--border);}
 .hist-row:last-child{border-bottom:none;}
 .hist-time{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:42px;}
 .hist-info{flex:1;}
 .hist-loc{font-size:13px;font-weight:500;}
-.hist-date{font-size:11px;color:var(--text3);}
 .badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
 .badge-in{background:var(--green-dim);color:var(--green);}
 .badge-out{background:var(--red-dim);color:var(--red);}
+/* TORCH BUTTON */
+.torch-btn{background:rgba(255,255,255,0.15);border:none;color:var(--text);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.torch-btn.on{background:rgba(232,255,62,0.3);color:var(--accent);}
 </style>
 </head>
 <body>
 
-<!-- STEP1: 接続設定 -->
 <div class="screen" id="screen-config">
   <div class="logo">⏱</div>
   <div class="screen-title">出勤打刻アプリ</div>
@@ -165,11 +124,10 @@ option{background:var(--bg3);}
   </div>
 </div>
 
-<!-- STEP2: 名前登録 -->
 <div class="screen" id="screen-name">
   <div class="logo">👤</div>
   <div class="screen-title">あなたは誰ですか？</div>
-  <div class="screen-sub">一覧から自分の名前を選んでください<br>次回から自動でログインします</div>
+  <div class="screen-sub">一覧から自分の名前を選んでください</div>
   <div class="card">
     <div class="form-field"><label>名前を選択</label><select id="name-select"><option value="">-- 選択してください --</option></select></div>
     <button class="btn btn-accent" onclick="saveName()">この名前で開始 →</button>
@@ -180,6 +138,7 @@ option{background:var(--bg3);}
 <div class="scanner-overlay" id="scanner-overlay">
   <div class="scanner-header">
     <div class="scanner-title">現場QRをスキャン</div>
+    <button class="torch-btn" id="torch-btn" onclick="toggleTorch()">🔦</button>
     <button class="scanner-close" onclick="closeScanner()">✕</button>
   </div>
   <div class="scanner-info">
@@ -187,7 +146,7 @@ option{background:var(--bg3);}
     <div class="scanner-info-type" id="scanner-type-label">出勤</div>
   </div>
   <div class="scanner-body">
-    <video id="scanner-video" playsinline muted></video>
+    <video id="scanner-video" playsinline muted autoplay></video>
     <div class="scan-frame">
       <div class="scan-frame-inner">
         <div class="scan-corner tr"></div>
@@ -197,56 +156,38 @@ option{background:var(--bg3);}
     </div>
     <div id="scanner-result-overlay"></div>
   </div>
-  <div class="scanner-hint">現場に貼ってあるQRコードを読み取ってください</div>
+  <div class="scanner-hint">現場に貼ってあるQRコードを枠内に合わせてください</div>
 </div>
 
-<!-- MAIN APP -->
 <div class="main-screen" id="main-screen">
   <div class="pages">
-
-    <!-- 打刻ページ -->
     <div id="page-stamp" class="page active">
       <div class="page-header">
         <div class="page-title">打刻</div>
         <div class="page-sub" id="today-label"></div>
       </div>
       <div class="conn-bar"><div class="dot dot-off" id="conn-dot"></div><span id="conn-label">接続中...</span></div>
-
-      <!-- 自分の情報 -->
       <div class="info-card" style="margin-bottom:14px">
         <div class="info-card-label">ログイン中</div>
         <div class="info-card-value" id="my-name-display">—</div>
       </div>
-
-      <!-- 出勤・退勤 -->
       <div class="type-sel">
         <button class="type-btn active in" id="type-in" onclick="setType('in')">▲ 出勤</button>
         <button class="type-btn out" id="type-out" onclick="setType('out')">▼ 退勤</button>
       </div>
-
-      <!-- スキャンボタン -->
       <button class="scan-btn" onclick="openScanner()">
         <span style="font-size:26px">📷</span> 現場QRをスキャン
       </button>
-
       <div id="stamp-result"></div>
-
-      <!-- 本日の打刻 -->
       <div style="margin-top:20px">
         <div style="font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px">本日の打刻履歴</div>
-        <div class="info-card" style="padding:4px 16px;">
-          <div id="today-history"></div>
-        </div>
+        <div class="info-card" style="padding:4px 16px;"><div id="today-history"></div></div>
       </div>
     </div>
-
-    <!-- 設定ページ -->
     <div id="page-settings" class="page">
-      <div class="page-header">
-        <div class="page-title">設定</div>
-      </div>
+      <div class="page-header"><div class="page-title">設定</div></div>
       <div class="info-card" style="margin-bottom:12px">
-        <div class="info-card-label">ログイン中のスタッフ</div>
+        <div class="info-card-label">ログイン中</div>
         <div class="info-card-value" id="settings-name">—</div>
       </div>
       <button class="btn btn-ghost" onclick="changeName()" style="margin-bottom:10px">👤 名前を変更する</button>
@@ -258,7 +199,6 @@ option{background:var(--bg3);}
         <button class="btn btn-danger" onclick="logout()">⏏ ログアウト</button>
       </div>
     </div>
-
   </div>
   <nav class="nav-bar">
     <button class="nav-item active" onclick="showPage('stamp',this)"><span class="nav-icon">⏱</span>打刻</button>
@@ -266,48 +206,40 @@ option{background:var(--bg3);}
   </nav>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 const CFG='qr_att_cfg2', NAME_KEY='qr_att_myname';
 let SB_URL='', SB_KEY='', myStaff=null, stampType='in';
 let videoStream=null, scannerActive=false, scanCooldown=false, scanInterval=null;
+let torchOn=false, torchTrack=null;
 const SCAN_CANVAS=document.createElement('canvas');
+const SCAN_CTX=SCAN_CANVAS.getContext('2d',{willReadFrequently:true});
+
+// BarcodeDetector（Android Chrome対応）
+let barcodeDetector=null;
+if('BarcodeDetector' in window){
+  try{ barcodeDetector=new BarcodeDetector({formats:['qr_code']}); }catch(e){}
+}
 
 function getConfig(){ try{ return JSON.parse(localStorage.getItem(CFG))||{}; }catch(e){ return {}; } }
 function saveCfg(url,key){ localStorage.setItem(CFG,JSON.stringify({url,key})); }
 function getMyName(){ return localStorage.getItem(NAME_KEY)||''; }
 function saveMyName(id){ localStorage.setItem(NAME_KEY,id); }
 
-// ---- INIT ----
 (function(){
   const params=new URLSearchParams(window.location.search);
-  const pUrl=params.get('url');
-  const pKey=params.get('key');
-  if(pUrl&&pKey){
-    saveCfg(pUrl.replace(/\/$/,''),pKey);
-  }
+  const pUrl=params.get('url'), pKey=params.get('key');
+  if(pUrl&&pKey){ saveCfg(pUrl.replace(/\/$/,''),pKey); }
   const cfg=getConfig();
-  if(!cfg.url||!cfg.key){
-    document.getElementById('screen-config').classList.add('active');
-    return;
-  }
+  if(!cfg.url||!cfg.key){ document.getElementById('screen-config').classList.add('active'); return; }
   SB_URL=cfg.url; SB_KEY=cfg.key;
   const savedId=getMyName();
-  if(!savedId){
-    loadStaffForSelect();
-  } else {
-    startMain(savedId);
-  }
+  if(!savedId){ loadStaffForSelect(); } else { startMain(savedId); }
 })();
 
 async function sbFetch(path,opts={}){
   const res=await fetch(SB_URL+'/rest/v1/'+path,{
     ...opts,
-    headers:{
-      'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
-      'Content-Type':'application/json','Prefer':opts.prefer||'',
-      ...(opts.headers||{})
-    }
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':opts.prefer||'',...(opts.headers||{})}
   });
   if(!res.ok){ const e=await res.text(); throw new Error(e); }
   const ct=res.headers.get('content-type')||'';
@@ -323,8 +255,7 @@ function saveConfig(){
   const url=document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
   const key=document.getElementById('cfg-key').value.trim();
   if(!url||!key){ alert('入力してください'); return; }
-  saveCfg(url,key);
-  SB_URL=url; SB_KEY=key;
+  saveCfg(url,key); SB_URL=url; SB_KEY=key;
   document.getElementById('screen-config').classList.remove('active');
   loadStaffForSelect();
 }
@@ -352,25 +283,18 @@ function saveName(){
 async function startMain(staffId){
   try{
     const staff=await sbFetch(`staff?id=eq.${staffId}&select=*`);
-    if(!staff||!staff.length){ 
-      localStorage.removeItem(NAME_KEY);
-      loadStaffForSelect(); return; 
-    }
-    myStaff=staff[0];
-    setConn(true);
+    if(!staff||!staff.length){ localStorage.removeItem(NAME_KEY); loadStaffForSelect(); return; }
+    myStaff=staff[0]; setConn(true);
   }catch(e){ setConn(false); myStaff={id:staffId,name:'(オフライン)',dept:''}; }
-  
   document.getElementById('main-screen').classList.add('active');
   document.getElementById('my-name-display').textContent=myStaff?myStaff.name:'—';
   document.getElementById('settings-name').textContent=myStaff?myStaff.name:'—';
   document.getElementById('set-url').value=SB_URL;
   document.getElementById('set-key').value=SB_KEY;
-  
   const now=new Date();
   document.getElementById('today-label').textContent=
     now.getFullYear()+'/'+(now.getMonth()+1).toString().padStart(2,'0')+'/'+now.getDate().toString().padStart(2,'0')+
     ' '+['日','月','火','水','木','金','土'][now.getDay()]+'曜日';
-  
   loadTodayHistory();
 }
 
@@ -387,7 +311,7 @@ function showPage(id,btn){
   if(btn) btn.classList.add('active');
 }
 
-// ---- SCANNER ----
+// ---- SCANNER（iPhone最適化）----
 async function openScanner(){
   if(!myStaff){ alert('スタッフ情報がありません'); return; }
   document.getElementById('scanner-staff-name').textContent=myStaff.name;
@@ -395,21 +319,30 @@ async function openScanner(){
   document.getElementById('scanner-overlay').classList.add('open');
   const video=document.getElementById('scanner-video');
   try{
-    videoStream=await navigator.mediaDevices.getUserMedia({
+    // iPhone Safari: facingMode:exact は使わない、autoFocusを優先
+    const constraints={
       video:{
         facingMode:'environment',
-        width:{ideal:1280},
-        height:{ideal:720},
-        frameRate:{ideal:30}
+        width:{min:640,ideal:1280,max:1920},
+        height:{min:480,ideal:720,max:1080},
+        frameRate:{ideal:30,max:60},
+        focusMode:'continuous' // iOSオートフォーカス
       }
-    });
+    };
+    videoStream=await navigator.mediaDevices.getUserMedia(constraints)
+      .catch(()=>navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}));
+    
+    // トーチ対応トラック取得
+    torchTrack=videoStream.getVideoTracks()[0];
     video.srcObject=videoStream;
     await video.play();
     scannerActive=true; scanCooldown=false;
-    // 100msインターバルで高速スキャン
-    scanInterval=setInterval(tickScanner, 100);
+
+    // iPhoneはBarcodeDetector非対応 → jsQRを高頻度で回す
+    const ms=barcodeDetector?50:80;
+    scanInterval=setInterval(tickScanner,ms);
   }catch(e){
-    alert('カメラへのアクセスが拒否されました。\nブラウザの設定でカメラを許可してください。');
+    alert('カメラへのアクセスが拒否されました。\nSafariの設定からカメラを許可してください。');
     closeScanner();
   }
 }
@@ -417,68 +350,64 @@ async function openScanner(){
 function closeScanner(){
   scannerActive=false;
   if(scanInterval){ clearInterval(scanInterval); scanInterval=null; }
+  if(torchOn) toggleTorch();
   if(videoStream){ videoStream.getTracks().forEach(t=>t.stop()); videoStream=null; }
   document.getElementById('scanner-overlay').classList.remove('open');
   document.getElementById('scanner-result-overlay').innerHTML='';
 }
 
-function tickScanner(){
+async function toggleTorch(){
+  if(!torchTrack) return;
+  try{
+    torchOn=!torchOn;
+    await torchTrack.applyConstraints({advanced:[{torch:torchOn}]});
+    const btn=document.getElementById('torch-btn');
+    btn.className='torch-btn'+(torchOn?' on':'');
+  }catch(e){}
+}
+
+async function tickScanner(){
   if(!scannerActive||scanCooldown) return;
   const video=document.getElementById('scanner-video');
-  if(video.readyState!==video.HAVE_ENOUGH_DATA) return;
-  const vw=video.videoWidth, vh=video.videoHeight;
-  if(!vw||!vh) return;
-
-  // 中央の正方形だけ切り取って解析（高速化）
-  const size=Math.min(vw,vh)*0.7;
-  const sx=(vw-size)/2, sy=(vh-size)/2;
-  SCAN_CANVAS.width=size;
-  SCAN_CANVAS.height=size;
-  const ctx=SCAN_CANVAS.getContext('2d');
-  ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+  if(video.readyState!==video.HAVE_ENOUGH_DATA||!video.videoWidth) return;
 
   try{
-    const imgData=ctx.getImageData(0,0,size,size);
-    const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'dontInvert'});
-    if(code){
-      scanCooldown=true;
-      handleQR(code.data);
+    if(barcodeDetector){
+      const codes=await barcodeDetector.detect(video);
+      if(codes.length){ scanCooldown=true; handleQR(codes[0].rawValue); return; }
+    } else {
+      // jsQR: フルサイズで解析（iPhoneは解像度が高いので切り取りより全体の方が安定）
+      const vw=video.videoWidth, vh=video.videoHeight;
+      SCAN_CANVAS.width=vw; SCAN_CANVAS.height=vh;
+      SCAN_CTX.drawImage(video,0,0,vw,vh);
+      const imgData=SCAN_CTX.getImageData(0,0,vw,vh);
+      const code=jsQR(imgData.data,vw,vh,{inversionAttempts:'attemptBoth'});
+      if(code){ scanCooldown=true; handleQR(code.data); }
     }
   }catch(e){}
 }
 
 async function handleQR(data){
-  scanCooldown=true;
-  let locId=null, locName=null;
+  let locId=null;
+  try{ const obj=JSON.parse(data); locId=obj.locationId||obj.location_id||null; }
+  catch(e){ locId=data.trim(); }
   try{
-    const obj=JSON.parse(data);
-    locId=obj.locationId||obj.location_id||null;
-    locName=obj.locationName||obj.location_name||null;
-  }catch(e){ locId=data.trim(); }
-
-  // 現場IDで検索
-  try{
-    const locs=await sbFetch(`locations?id=eq.${locId}&select=*`);
+    const locs=await sbFetch(`locations?id=eq.${encodeURIComponent(locId)}&select=*`);
     if(!locs||!locs.length){
       showScannerResult('❌ 未登録の現場QRです',false);
-      setTimeout(()=>{ scanCooldown=false; },2000);
-      return;
+      setTimeout(()=>{ scanCooldown=false; },2000); return;
     }
     const loc=locs[0];
     await sbFetch('attendance',{
-      method:'POST', prefer:'return=minimal',
-      body:JSON.stringify({
-        staff_id:myStaff.id, staff_name:myStaff.name, dept:myStaff.dept||'',
-        location_id:loc.id, location_name:loc.name,
-        type:stampType, time:new Date().toISOString()
-      })
+      method:'POST',prefer:'return=minimal',
+      body:JSON.stringify({staff_id:myStaff.id,staff_name:myStaff.name,dept:myStaff.dept||'',location_id:loc.id,location_name:loc.name,type:stampType,time:new Date().toISOString()})
     });
     const label=stampType==='in'?'▲ 出勤':'▼ 退勤';
     const now=new Date();
-    const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    showScannerResult(`${label} 打刻完了\n${loc.name} — ${timeStr}`,true);
+    const t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    showScannerResult(`${label} 打刻完了\n${loc.name} — ${t}`,true);
     if(navigator.vibrate) navigator.vibrate([80,40,80]);
-    setTimeout(()=>{ closeScanner(); loadTodayHistory(); },2200);
+    setTimeout(()=>{ closeScanner(); loadTodayHistory(); },2000);
   }catch(e){
     showScannerResult('❌ 通信エラー。再試行してください',false);
     setTimeout(()=>{ scanCooldown=false; },2500);
@@ -499,11 +428,7 @@ async function loadTodayHistory(){
     el.innerHTML=recs.map(r=>{
       const d=new Date(r.time);
       const t=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-      return `<div class="hist-row">
-        <div class="hist-time">${t}</div>
-        <div class="hist-info"><div class="hist-loc">${r.location_name||'現場不明'}</div></div>
-        <span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span>
-      </div>`;
+      return `<div class="hist-row"><div class="hist-time">${t}</div><div class="hist-info"><div class="hist-loc">${r.location_name||'現場不明'}</div></div><span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span></div>`;
     }).join('');
     setConn(true);
   }catch(e){ setConn(false); }
@@ -525,10 +450,9 @@ function updateConfig(){
 
 function logout(){
   if(!confirm('ログアウトしますか？')) return;
-  localStorage.removeItem(CFG);
-  localStorage.removeItem(NAME_KEY);
-  location.reload();
+  localStorage.removeItem(CFG); localStorage.removeItem(NAME_KEY); location.reload();
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </body>
 </html>
