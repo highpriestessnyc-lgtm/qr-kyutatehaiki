@@ -1135,7 +1135,7 @@ async function submitModal(){
       closeModal();
       filterRecords();
       return;
-    }
+    } else if(modalType==='dept'){
       const name=document.getElementById('m-name').value.trim();
       const color=document.getElementById('m-color').value;
       if(!name){ alert('名前は必須です'); return; }
