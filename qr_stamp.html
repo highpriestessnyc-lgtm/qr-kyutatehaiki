@@ -21,84 +21,90 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px 20px;}
-
+body{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px 16px 40px;}
 .container{width:100%;max-width:400px;}
-.loc-header{text-align:center;margin-bottom:28px;}
-.loc-icon{font-size:48px;margin-bottom:8px;}
-.loc-name{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
-.loc-sub{font-size:13px;color:var(--text2);margin-top:4px;}
 
-/* NAME SELECT */
-.name-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
-.name-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
-select{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:16px;padding:14px;outline:none;-webkit-appearance:none;}
-select:focus{border-color:var(--accent);}
-option{background:var(--bg3);}
+/* HEADER */
+.loc-header{text-align:center;margin-bottom:20px;}
+.loc-icon{font-size:40px;margin-bottom:6px;}
+.loc-name{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.loc-dept{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:4px;}
+.loc-sub{font-size:12px;color:var(--text2);margin-top:4px;}
 
-/* TYPE BUTTONS */
-.type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.type-btn{
-  padding:18px;border-radius:var(--radius-sm);
-  border:0.5px solid var(--border2);background:var(--bg2);
-  color:var(--text2);font-family:var(--font);font-size:16px;font-weight:700;
-  cursor:pointer;transition:all 0.15s;text-align:center;
-}
+/* CARD */
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.card-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;}
+
+/* 五十音タブ */
+.kana-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.kana-btn{padding:6px 10px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;min-width:36px;text-align:center;}
+.kana-btn.active{background:var(--accent);color:#0f0f0f;border-color:var(--accent);}
+.kana-btn:active{transform:scale(0.95);}
+
+/* 名前リスト */
+.name-list{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;}
+.name-item{padding:13px 14px;border-radius:var(--radius-sm);background:var(--bg3);border:0.5px solid var(--border2);cursor:pointer;font-size:15px;font-weight:500;transition:all 0.15s;display:flex;align-items:center;justify-content:space-between;}
+.name-item:active{transform:scale(0.98);}
+.name-item.selected{background:var(--accent-dim);border-color:rgba(232,255,62,0.4);color:var(--accent);}
+.name-item-dept{font-size:11px;color:var(--text2);}
+.name-empty{text-align:center;padding:24px;color:var(--text3);font-size:13px;}
+
+/* 選택した名前表示 */
+.selected-name{background:var(--bg2);border:0.5px solid rgba(232,255,62,0.3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;display:none;}
+.selected-name.show{display:flex;align-items:center;justify-content:space-between;}
+.selected-name-text{font-size:16px;font-weight:700;color:var(--accent);}
+.selected-name-change{font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline;}
+
+/* TYPE */
+.type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.type-btn{padding:16px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-family:var(--font);font-size:16px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:center;}
 .type-btn.active.in{background:var(--green-dim);color:var(--green);border-color:rgba(61,220,132,0.4);}
 .type-btn.active.out{background:var(--red-dim);color:var(--red);border-color:rgba(255,107,107,0.4);}
 .type-btn:active{transform:scale(0.97);}
 
-/* STAMP BUTTON */
-.stamp-btn{
-  width:100%;padding:20px;border-radius:var(--radius);
-  background:var(--accent);color:#0f0f0f;border:none;
-  font-family:var(--font);font-size:18px;font-weight:700;
-  cursor:pointer;transition:all 0.15s;
-}
-.stamp-btn:active{transform:scale(0.97);opacity:0.9;}
-.stamp-btn:disabled{opacity:0.4;cursor:default;}
+/* 勤務区分 */
+.wt-wrap{display:none;margin-bottom:12px;}
+.wt-wrap.show{display:block;}
+select{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:15px;padding:13px;outline:none;-webkit-appearance:none;}
+select:focus{border-color:var(--accent);}
+option{background:var(--bg3);}
+
+/* STAMP BTN */
+.stamp-btn{width:100%;padding:19px;border-radius:var(--radius);background:var(--accent);color:#0f0f0f;border:none;font-family:var(--font);font-size:17px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.stamp-btn:active{transform:scale(0.97);}
+.stamp-btn:disabled{opacity:0.4;}
 
 /* RESULT */
-.result{
-  margin-top:16px;border-radius:var(--radius-sm);
-  padding:20px;text-align:center;font-size:16px;font-weight:700;
-  animation:fadeIn 0.2s ease;display:none;
-}
+.result{margin-top:12px;border-radius:var(--radius-sm);padding:18px;text-align:center;font-size:16px;font-weight:700;display:none;animation:fadeIn 0.2s ease;}
 .result.ok{background:var(--green-dim);color:var(--green);border:0.5px solid rgba(61,220,132,0.3);}
 .result.ng{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(255,107,107,0.3);}
 .result.show{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-/* ERROR */
-.error-screen{text-align:center;padding:40px 20px;}
-.error-icon{font-size:48px;margin-bottom:12px;}
-.error-title{font-size:18px;font-weight:700;margin-bottom:8px;}
-.error-sub{font-size:13px;color:var(--text2);line-height:1.6;}
+/* HISTORY */
+.hist-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:4px 16px;margin-top:16px;}
+.hist-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;padding:12px 0 6px;}
+.hist-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.hist-row:last-child{border-bottom:none;}
+.hist-time{font-size:12px;color:var(--text2);min-width:42px;}
+.hist-name{flex:1;font-size:13px;font-weight:500;}
+.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.badge-in{background:var(--green-dim);color:var(--green);}
+.badge-out{background:var(--red-dim);color:var(--red);}
 
-/* LOADING */
-.loading{text-align:center;padding:60px 20px;color:var(--text2);font-size:14px;}
+/* ERROR / LOADING */
+.error-screen{text-align:center;padding:40px 20px;}
 .spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* HISTORY */
-.history{margin-top:20px;}
-.hist-label{font-size:11px;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
-.hist-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:4px 16px;}
-.hist-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border);}
-.hist-row:last-child{border-bottom:none;}
-.hist-time{font-size:12px;color:var(--text2);min-width:42px;font-variant-numeric:tabular-nums;}
-.hist-name{flex:1;font-size:13px;font-weight:500;}
-.badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
-.badge-in{background:var(--green-dim);color:var(--green);}
-.badge-out{background:var(--red-dim);color:var(--red);}
+/* accent-dim */
+:root{ --accent-dim:rgba(232,255,62,0.12); }
 </style>
 </head>
 <body>
-
 <div class="container" id="app">
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    読み込み中...
+  <div style="text-align:center;padding:60px 20px;color:var(--text2)">
+    <div class="spinner"></div>読み込み中...
   </div>
 </div>
 
@@ -107,73 +113,210 @@ const params=new URLSearchParams(window.location.search);
 const SB_URL=(params.get('url')||'').replace(/\/$/,'');
 const SB_KEY=params.get('key')||'';
 const LOC_ID=params.get('loc')||'';
-const NAME_KEY='qr_stamp_name';
+const NAME_KEY='qr_stamp_v2_name';
 
-let staffCache=[], locData=null, stampType='in';
+let staffAll=[], staffFiltered=[], locData=null, wtCache=[], deptCache=[];
+let selectedStaff=null, stampType='in', activeKana='全';
 
-async function sbFetch(path,opts={}){
+const KANA_ROWS=[
+  {label:'全', chars:null},
+  {label:'あ', chars:['あ','い','う','え','お','ア','イ','ウ','エ','オ']},
+  {label:'か', chars:['か','き','く','け','こ','カ','キ','ク','ケ','コ']},
+  {label:'さ', chars:['さ','し','す','せ','そ','サ','シ','ス','セ','ソ']},
+  {label:'た', chars:['た','ち','つ','て','と','タ','チ','ツ','テ','ト']},
+  {label:'な', chars:['な','に','ぬ','ね','の','ナ','ニ','ヌ','ネ','ノ']},
+  {label:'は', chars:['は','ひ','ふ','へ','ほ','ハ','ヒ','フ','ヘ','ホ']},
+  {label:'ま', chars:['ま','み','む','め','も','マ','ミ','ム','メ','モ']},
+  {label:'や', chars:['や','ゆ','よ','ヤ','ユ','ヨ']},
+  {label:'ら', chars:['ら','り','る','れ','ろ','ラ','リ','ル','レ','ロ']},
+  {label:'わ', chars:['わ','を','ん','ワ','ヲ','ン']},
+];
+
+async function sb(path,opts={}){
   const res=await fetch(SB_URL+'/rest/v1/'+path,{
     ...opts,
     headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':opts.prefer||'',...(opts.headers||{})}
   });
-  if(!res.ok){ const e=await res.text(); throw new Error(e); }
+  if(!res.ok){const e=await res.text();throw new Error(e);}
   const ct=res.headers.get('content-type')||'';
   return ct.includes('json')?res.json():null;
 }
 
-function fmtTime(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function fmtT(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 
 async function init(){
   const app=document.getElementById('app');
   if(!SB_URL||!SB_KEY||!LOC_ID){
-    app.innerHTML=`<div class="error-screen"><div class="error-icon">⚠️</div><div class="error-title">URLが正しくありません</div><div class="error-sub">管理者から正しいQRコードを受け取ってください</div></div>`;
+    app.innerHTML=`<div class="error-screen"><div style="font-size:48px;margin-bottom:12px">⚠️</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">URLが正しくありません</div><div style="color:var(--text2);font-size:13px">管理者から正しいQRコードを受け取ってください</div></div>`;
     return;
   }
   try{
-    [staffCache, locData]=await Promise.all([
-      sbFetch('staff?select=*&order=name.asc'),
-      sbFetch(`locations?id=eq.${encodeURIComponent(LOC_ID)}&select=*`).then(r=>r&&r[0]||null)
+    [staffAll, locData, wtCache, deptCache]=await Promise.all([
+      sb('staff?select=*&order=name.asc'),
+      sb(`locations?id=eq.${encodeURIComponent(LOC_ID)}&select=*`).then(r=>r&&r[0]||null),
+      sb('work_types?select=*&order=name.asc'),
+      sb('departments?select=*')
     ]);
     if(!locData){
-      app.innerHTML=`<div class="error-screen"><div class="error-icon">📍</div><div class="error-title">現場が見つかりません</div><div class="error-sub">このQRコードは無効です。<br>管理者に連絡してください。</div></div>`;
+      app.innerHTML=`<div class="error-screen"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">現場が見つかりません</div><div style="color:var(--text2);font-size:13px">このQRコードは無効です</div></div>`;
       return;
     }
+    // 現場の事業部でスタッフを絞り込み（初期値）
+    filterByDept();
     renderApp();
   }catch(e){
-    app.innerHTML=`<div class="error-screen"><div class="error-icon">📡</div><div class="error-title">接続エラー</div><div class="error-sub">ネットワークを確認してください</div></div>`;
+    app.innerHTML=`<div class="error-screen"><div style="font-size:48px;margin-bottom:12px">📡</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">接続エラー</div><div style="color:var(--text2);font-size:13px">ネットワークを確認してください</div></div>`;
   }
 }
 
+function filterByDept(){
+  // 現場に事業部が設定されていればその事業部のスタッフのみ、なければ全員
+  if(locData.dept_id){
+    staffFiltered=staffAll.filter(s=>s.dept_id===locData.dept_id);
+    // 0人になったら全員表示にフォールバック
+    if(!staffFiltered.length) staffFiltered=staffAll;
+  } else {
+    staffFiltered=staffAll;
+  }
+}
+
+function getDeptInfo(deptId){
+  return deptCache.find(d=>d.id===deptId)||null;
+}
+
+function filterByKana(kana){
+  activeKana=kana;
+  renderNameList();
+  renderKanaTabs();
+}
+
+function getFilteredByKana(){
+  const row=KANA_ROWS.find(r=>r.label===activeKana);
+  if(!row||!row.chars) return staffFiltered;
+  return staffFiltered.filter(s=>{
+    const first=s.name.trim()[0]||'';
+    // ひらがな・カタカナ両方対応（名前の読み仮名がない場合も考慮して名前の最初の文字で判断）
+    return row.chars.some(c=>first===c) || matchKana(s.name, row.chars);
+  });
+}
+
+function matchKana(name, chars){
+  // 名前の読み（furigana未対応のため名前自体の最初の文字で判断）
+  const first=name.trim()[0]||'';
+  return chars.includes(first);
+}
+
 function renderApp(){
+  const dept=getDeptInfo(locData.dept_id);
+  const deptBadge=dept?`<div class="loc-dept" style="background:${dept.color}22;color:${dept.color}">${dept.name}</div>`:'';
   const savedId=localStorage.getItem(NAME_KEY)||'';
-  const app=document.getElementById('app');
-  app.innerHTML=`
+  if(savedId) selectedStaff=staffAll.find(s=>s.id===savedId)||null;
+
+  document.getElementById('app').innerHTML=`
     <div class="loc-header">
       <div class="loc-icon">📍</div>
       <div class="loc-name">${locData.name}</div>
-      <div class="loc-sub">${locData.address||'打刻してください'}</div>
+      ${deptBadge}
+      <div class="loc-sub">${locData.address||'出退勤を打刻してください'}</div>
     </div>
-    <div class="name-card">
-      <div class="name-label">あなたの名前</div>
-      <select id="staff-sel" onchange="onNameChange()">
-        <option value="">-- 名前を選択 --</option>
-        ${staffCache.map(s=>`<option value="${s.id}" ${s.id===savedId?'selected':''}>${s.name}${s.dept?' ('+s.dept+')':''}</option>`).join('')}
-      </select>
+
+    <!-- 選択済み名前表示 -->
+    <div class="selected-name${selectedStaff?' show':''}" id="selected-display">
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:2px">選択中</div>
+        <div class="selected-name-text" id="selected-text">${selectedStaff?selectedStaff.name:''}</div>
+      </div>
+      <div class="selected-name-change" onclick="clearSelected()">変更する</div>
     </div>
+
+    <!-- 名前選択カード -->
+    <div class="card" id="name-card" style="${selectedStaff?'display:none':''}">
+      <div class="card-label">名前を選んでください（${staffFiltered.length}名）</div>
+      <div class="kana-tabs" id="kana-tabs"></div>
+      <div class="name-list" id="name-list"></div>
+    </div>
+
+    <!-- 勤務区分（掛け持ちの場合） -->
+    <div class="wt-wrap" id="wt-wrap">
+      <div class="card">
+        <div class="card-label">今日の勤務区分</div>
+        <select id="wt-sel"></select>
+      </div>
+    </div>
+
+    <!-- 出勤・退勤 -->
     <div class="type-row">
       <button class="type-btn active in" id="type-in" onclick="setType('in')">▲ 出勤</button>
       <button class="type-btn out" id="type-out" onclick="setType('out')">▼ 退勤</button>
     </div>
+
     <button class="stamp-btn" id="stamp-btn" onclick="doStamp()">打刻する</button>
     <div class="result" id="result"></div>
-    <div class="history" id="history"></div>
+    <div id="history"></div>
   `;
+
+  renderKanaTabs();
+  renderNameList();
+  if(selectedStaff) updateWTSelect();
   loadHistory();
 }
 
-function onNameChange(){
-  const id=document.getElementById('staff-sel').value;
-  if(id) localStorage.setItem(NAME_KEY,id);
+function renderKanaTabs(){
+  const el=document.getElementById('kana-tabs');
+  if(!el) return;
+  el.innerHTML=KANA_ROWS.map(r=>`
+    <button class="kana-btn${activeKana===r.label?' active':''}" onclick="filterByKana('${r.label}')">${r.label}</button>
+  `).join('');
+}
+
+function renderNameList(){
+  const el=document.getElementById('name-list');
+  if(!el) return;
+  const list=getFilteredByKana();
+  if(!list.length){ el.innerHTML=`<div class="name-empty">該当するスタッフがいません</div>`; return; }
+  el.innerHTML=list.map(s=>{
+    const dept=getDeptInfo(s.dept_id);
+    const deptStr=dept?`<span class="name-item-dept">${dept.name}</span>`:'';
+    return `<div class="name-item${selectedStaff?.id===s.id?' selected':''}" onclick="selectStaff('${s.id}')">
+      <span>${s.name}</span>
+      ${deptStr}
+    </div>`;
+  }).join('');
+}
+
+function selectStaff(id){
+  selectedStaff=staffAll.find(s=>s.id===id)||null;
+  if(selectedStaff){
+    localStorage.setItem(NAME_KEY, selectedStaff.id);
+    // 名前カードを隠して選択表示を出す
+    document.getElementById('name-card').style.display='none';
+    const disp=document.getElementById('selected-display');
+    document.getElementById('selected-text').textContent=selectedStaff.name;
+    disp.classList.add('show');
+    updateWTSelect();
+  }
+}
+
+function clearSelected(){
+  selectedStaff=null;
+  document.getElementById('selected-display').classList.remove('show');
+  document.getElementById('name-card').style.display='block';
+  document.getElementById('wt-wrap').classList.remove('show');
+  renderNameList();
+}
+
+function updateWTSelect(){
+  if(!selectedStaff) return;
+  const wtIds=selectedStaff.work_type_ids||[];
+  const wts=wtIds.map(id=>wtCache.find(w=>w.id===id)).filter(Boolean);
+  const wrap=document.getElementById('wt-wrap');
+  const sel=document.getElementById('wt-sel');
+  if(wts.length>1){
+    sel.innerHTML=wts.map(w=>`<option value="${w.id}">${w.name}（${w.is_flex?'フレックス':w.start_time+'〜'+w.end_time}）</option>`).join('');
+    wrap.classList.add('show');
+  } else {
+    wrap.classList.remove('show');
+  }
 }
 
 function setType(t){
@@ -183,55 +326,58 @@ function setType(t){
 }
 
 async function doStamp(){
-  const sid=document.getElementById('staff-sel').value;
-  if(!sid){ showResult('名前を選択してください',false); return; }
-  const staff=staffCache.find(s=>s.id===sid);
+  if(!selectedStaff){ showResult('名前を選択してください',false); return; }
+  const wtWrap=document.getElementById('wt-wrap');
+  const wtSel=document.getElementById('wt-sel');
+  let wtId=null, wtName='';
+  if(wtWrap.classList.contains('show')&&wtSel.value){
+    wtId=wtSel.value;
+    wtName=wtCache.find(w=>w.id===wtId)?.name||'';
+  } else {
+    const wtIds=selectedStaff.work_type_ids||[];
+    if(wtIds.length===1){ wtId=wtIds[0]; wtName=wtCache.find(w=>w.id===wtId)?.name||''; }
+  }
   const btn=document.getElementById('stamp-btn');
   btn.disabled=true; btn.textContent='送信中...';
   try{
-    await sbFetch('attendance',{
-      method:'POST',prefer:'return=minimal',
+    await sb('attendance',{method:'POST',prefer:'return=minimal',
       body:JSON.stringify({
-        staff_id:staff.id,staff_name:staff.name,dept:staff.dept||'',
-        location_id:locData.id,location_name:locData.name,
-        type:stampType,time:new Date().toISOString()
+        staff_id:selectedStaff.id, staff_name:selectedStaff.name,
+        dept_id:selectedStaff.dept_id||null, dept_name:'',
+        location_id:locData.id, location_name:locData.name,
+        work_type_id:wtId||null, work_type_name:wtName,
+        type:stampType, is_online:false, time:new Date().toISOString()
       })
     });
     const label=stampType==='in'?'▲ 出勤':'▼ 退勤';
-    const now=new Date();
-    showResult(`✓ ${label}しました\n${staff.name} — ${fmtTime(now)}`,true);
+    showResult(`✓ ${label}しました\n${selectedStaff.name} — ${fmtT(new Date())}`,true);
     if(navigator.vibrate) navigator.vibrate([80,40,80]);
     loadHistory();
-  }catch(e){
-    showResult('❌ 通信エラー。もう一度試してください',false);
-  } finally{
-    btn.disabled=false; btn.textContent='打刻する';
-  }
+  }catch(e){ showResult('❌ 通信エラー。もう一度試してください',false); }
+  finally{ btn.disabled=false; btn.textContent='打刻する'; }
 }
 
 function showResult(msg,ok){
   const el=document.getElementById('result');
   el.className='result show '+(ok?'ok':'ng');
   el.innerHTML=msg.replace('\n','<br>');
-  if(ok) setTimeout(()=>{ el.classList.remove('show'); },4000);
+  if(ok) setTimeout(()=>el.classList.remove('show'),4000);
 }
 
 async function loadHistory(){
   const today=new Date().toISOString().slice(0,10);
   try{
-    const recs=await sbFetch(`attendance?location_id=eq.${encodeURIComponent(locData.id)}&time=gte.${today}T00:00:00&time=lte.${today}T23:59:59&order=time.desc&limit=20`);
+    const recs=await sb(`attendance?location_id=eq.${encodeURIComponent(locData.id)}&time=gte.${today}T00:00:00&time=lte.${today}T23:59:59&order=time.desc&limit=30`);
     const el=document.getElementById('history');
-    if(!recs.length){ el.innerHTML=''; return; }
-    el.innerHTML=`
-      <div class="hist-label">本日のこの現場の打刻</div>
-      <div class="hist-card">
-        ${recs.map(r=>`
-          <div class="hist-row">
-            <div class="hist-time">${fmtTime(new Date(r.time))}</div>
-            <div class="hist-name">${r.staff_name}</div>
-            <span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span>
-          </div>`).join('')}
-      </div>`;
+    if(!recs||!recs.length){ el.innerHTML=''; return; }
+    el.innerHTML=`<div class="hist-card">
+      <div class="hist-label">本日この現場の打刻（${recs.length}件）</div>
+      ${recs.map(r=>`<div class="hist-row">
+        <div class="hist-time">${fmtT(new Date(r.time))}</div>
+        <div class="hist-name">${r.staff_name}</div>
+        <span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span>
+      </div>`).join('')}
+    </div>`;
   }catch(e){}
 }
 
