@@ -252,7 +252,10 @@ option{background:var(--bg3);}
 
     <!-- RECORDS -->
     <div id="page-records" class="page">
-      <div class="page-header"><div class="page-title">出勤簿</div></div>
+      <div class="page-header">
+        <div class="page-title">出勤簿</div>
+        <button class="btn btn-accent btn-sm" onclick="openAddAttModal()">＋ 打刻を追加</button>
+      </div>
       <div class="filter-bar">
         <input type="date" id="rec-from" style="width:136px">
         <input type="date" id="rec-to" style="width:136px">
@@ -263,7 +266,7 @@ option{background:var(--bg3);}
         <button class="btn btn-accent btn-sm" onclick="exportCSV()">↓ CSV</button>
       </div>
       <div class="panel">
-        <table class="tbl"><thead><tr><th>日時</th><th>スタッフ</th><th>事業部</th><th>現場</th><th>勤務区分</th><th>種別</th></tr></thead>
+        <table class="tbl"><thead><tr><th>日時</th><th>スタッフ</th><th>事業部</th><th>現場</th><th>勤務区分</th><th>種別</th><th></th></tr></thead>
         <tbody id="rec-tbody"></tbody></table>
         <div id="rec-empty" class="empty-state" style="display:none">データがありません</div>
       </div>
@@ -632,12 +635,75 @@ async function filterRecords(){
       <td>${r.location_name?`<span class="loc-badge">${r.location_name}</span>`:(r.is_online?'<span class="badge badge-online">オンライン</span>':'-')}</td>
       <td style="font-size:12px;color:var(--text2)">${r.work_type_name||'-'}</td>
       <td><span class="badge ${r.type==='in'?'badge-in':'badge-out'}">${r.type==='in'?'出勤':'退勤'}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-warn btn-sm" onclick="openEditAttModal(${r.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAtt(${r.id})">削除</button>
+      </td>
     </tr>`).join('');
     window._recs=recs;
   }catch(e){ alert('取得エラー'); }
 }
 
-function exportCSV(){
+// ---- ATTENDANCE EDIT ----
+function openEditAttModal(id){
+  const r=window._recs?.find(x=>x.id===id);
+  if(!r){ alert('データが見つかりません'); return; }
+  modalType='att_edit'; modalTarget=id;
+  document.getElementById('modal-title').textContent='打刻を編集';
+  const localTime=new Date(r.time);
+  // datetime-local用にフォーマット
+  const dtLocal=new Date(localTime.getTime()-localTime.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  const sOpts=staffCache.map(s=>`<option value="${s.id}"${s.id===r.staff_id?' selected':''}>${s.name}</option>`).join('');
+  const lOpts='<option value="">現場なし（オンライン）</option>'+locCache.map(l=>`<option value="${l.id}"${l.id===r.location_id?' selected':''}>${l.name}</option>`).join('');
+  const wtOpts='<option value="">未設定</option>'+wtCache.map(w=>`<option value="${w.id}"${w.id===r.work_type_id?' selected':''}>${w.name}</option>`).join('');
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-field"><label>スタッフ</label><select id="m-att-staff">${sOpts}</select></div>
+    <div class="form-field"><label>日時</label><input type="datetime-local" id="m-att-time" value="${dtLocal}"></div>
+    <div class="form-field"><label>種別</label>
+      <select id="m-att-type">
+        <option value="in"${r.type==='in'?' selected':''}>出勤</option>
+        <option value="out"${r.type==='out'?' selected':''}>退勤</option>
+      </select>
+    </div>
+    <div class="form-field"><label>現場</label><select id="m-att-loc">${lOpts}</select></div>
+    <div class="form-field"><label>勤務区分</label><select id="m-att-wt">${wtOpts}</select></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">※ 修正理由はCSV出力時のメモとして残りません</div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function openAddAttModal(){
+  modalType='att_add'; modalTarget=null;
+  document.getElementById('modal-title').textContent='打刻を手動追加';
+  const now=new Date();
+  const dtLocal=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  const sOpts='<option value="">-- 選択 --</option>'+staffCache.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  const lOpts='<option value="">現場なし（オンライン）</option>'+locCache.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  const wtOpts='<option value="">未設定</option>'+wtCache.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-field"><label>スタッフ</label><select id="m-att-staff">${sOpts}</select></div>
+    <div class="form-field"><label>日時</label><input type="datetime-local" id="m-att-time" value="${dtLocal}"></div>
+    <div class="form-field"><label>種別</label>
+      <select id="m-att-type">
+        <option value="in">出勤</option>
+        <option value="out">退勤</option>
+      </select>
+    </div>
+    <div class="form-field"><label>現場</label><select id="m-att-loc">${lOpts}</select></div>
+    <div class="form-field"><label>勤務区分</label><select id="m-att-wt">${wtOpts}</select></div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+async function deleteAtt(id){
+  if(!confirm('この打刻記録を削除しますか？')) return;
+  try{
+    await sb(`attendance?id=eq.${id}`,{method:'DELETE'});
+    filterRecords();
+  }catch(e){ alert('削除エラー: '+e.message); }
+}
+
+
   const recs=window._recs||[];
   if(!recs.length){ alert('データがありません'); return; }
   const rows=recs.map(r=>`${fmtDT(new Date(r.time))},${r.staff_name},${r.staff_id},${deptName(r.dept_id)||''},${r.location_name||''},${r.work_type_name||''},${r.is_online?'オンライン':'現場'},${r.type==='in'?'出勤':'退勤'}`);
@@ -1043,7 +1109,33 @@ function closeModal(){ document.getElementById('modal').classList.remove('open')
 
 async function submitModal(){
   try{
-    if(modalType==='dept'){
+    if(modalType==='att_edit'||modalType==='att_add'){
+      const staffId=document.getElementById('m-att-staff').value;
+      const timeVal=document.getElementById('m-att-time').value;
+      const type=document.getElementById('m-att-type').value;
+      const locId=document.getElementById('m-att-loc').value||null;
+      const wtId=document.getElementById('m-att-wt').value||null;
+      if(!staffId){ alert('スタッフを選択してください'); return; }
+      if(!timeVal){ alert('日時を入力してください'); return; }
+      const staff=staffCache.find(s=>s.id===staffId);
+      const loc=locId?locCache.find(l=>l.id===locId):null;
+      const wt=wtId?wtCache.find(w=>w.id===wtId):null;
+      const data={
+        staff_id:staffId, staff_name:staff?.name||'',
+        dept_id:staff?.dept_id||null, dept_name:'',
+        location_id:locId, location_name:loc?.name||'',
+        work_type_id:wtId, work_type_name:wt?.name||'',
+        type, is_online:!locId, time:new Date(timeVal).toISOString()
+      };
+      if(modalType==='att_edit'){
+        await sb(`attendance?id=eq.${modalTarget}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify(data)});
+      } else {
+        await sb('attendance',{method:'POST',prefer:'return=minimal',body:JSON.stringify(data)});
+      }
+      closeModal();
+      filterRecords();
+      return;
+    }
       const name=document.getElementById('m-name').value.trim();
       const color=document.getElementById('m-color').value;
       if(!name){ alert('名前は必須です'); return; }
