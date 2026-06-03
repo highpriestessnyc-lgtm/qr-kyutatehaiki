@@ -703,7 +703,7 @@ async function deleteAtt(id){
   }catch(e){ alert('削除エラー: '+e.message); }
 }
 
-
+function exportCSV(){
   const recs=window._recs||[];
   if(!recs.length){ alert('データがありません'); return; }
   const rows=recs.map(r=>`${fmtDT(new Date(r.time))},${r.staff_name},${r.staff_id},${deptName(r.dept_id)||''},${r.location_name||''},${r.work_type_name||''},${r.is_online?'オンライン':'現場'},${r.type==='in'?'出勤':'退勤'}`);
@@ -988,10 +988,11 @@ function printQR(){
   if(!canvas)return;
   const src=canvas.tagName==='CANVAS'?canvas.toDataURL():canvas.src;
   const win=window.open('','_blank');
+  const scriptTag='script';
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${loc.name}</title>
   <style>body{font-family:sans-serif;text-align:center;padding:60px;background:#fff;color:#000}h2{font-size:28px;margin-bottom:8px}p{color:#666;font-size:14px;margin-bottom:24px}img{display:block;margin:0 auto;width:240px;height:240px}.hint{margin-top:20px;font-size:13px;color:#999;border-top:1px solid #eee;padding-top:16px}</style>
   </head><body><h2>${loc.name}</h2><p>${loc.address||'出勤・退勤打刻用QRコード'}</p><img src="${src}"><div class="hint">iPhoneのカメラでQRを読み取り、出退勤を記録してください</div>
-  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+  <${scriptTag}>window.onload=()=>setTimeout(()=>window.print(),300)</${scriptTag}></body></html>`);
   win.document.close();
 }
 
