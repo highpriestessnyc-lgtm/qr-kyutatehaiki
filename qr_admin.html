@@ -160,6 +160,7 @@ option{background:var(--bg3);}
       <button class="nav-link" onclick="showPage('records',this)"><span class="nav-icon">📋</span>出勤簿</button>
       <button class="nav-link" onclick="showPage('report',this)"><span class="nav-icon">📊</span>月次レポート</button>
       <button class="nav-link" onclick="showPage('locations',this)"><span class="nav-icon">📍</span>現場管理・QR</button>
+      <button class="nav-link" onclick="showPage('worktypes',this)"><span class="nav-icon">🕐</span>勤務区分</button>
       <button class="nav-link" onclick="showPage('staff',this)"><span class="nav-icon">👥</span>スタッフ管理</button>
     </nav>
     <div class="sidebar-footer">
@@ -240,7 +241,7 @@ option{background:var(--bg3);}
       </div>
       <div class="stats-grid" id="rep-stats"></div>
       <div class="panel" style="margin-top:20px">
-        <table class="tbl"><thead><tr><th>スタッフ</th><th>事業部</th><th>出勤日数</th><th>現場数</th><th>合計時間</th><th>平均/日</th></tr></thead><tbody id="rep-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>スタッフ</th><th>事業部</th><th>勤務区分</th><th>出勤日数</th><th>合計時間</th><th>残業時間</th><th>平均/日</th></tr></thead><tbody id="rep-tbody"></tbody></table>
         <div id="rep-empty" class="empty-state" style="display:none">データがありません</div>
       </div>
     </div>
@@ -275,6 +276,38 @@ option{background:var(--bg3);}
       </div>
     </div>
 
+    <!-- WORK TYPES -->
+    <div id="page-worktypes" class="page">
+      <div class="page-header"><div class="page-title">勤務区分</div></div>
+      <div class="panel" style="padding:20px;margin-bottom:20px">
+        <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:14px">新規追加</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="form-field" style="margin-bottom:0"><label>区分名</label><input type="text" id="wt-name" placeholder="ホテルA・早番など"></div>
+          <div class="form-field" style="margin-bottom:0"><label>出勤時刻</label><input type="time" id="wt-start" value="09:00"></div>
+          <div class="form-field" style="margin-bottom:0"><label>退勤時刻</label><input type="time" id="wt-end" value="17:00"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end">
+          <div class="form-field" style="margin-bottom:0"><label>休憩（分）</label><input type="number" id="wt-break" value="60" min="0" max="240" placeholder="60"></div>
+          <div class="form-field" style="margin-bottom:0"><label>遅刻許容（分）</label><input type="number" id="wt-late" value="15" min="0" max="60" placeholder="15"></div>
+          <div class="form-field" style="margin-bottom:0"><label>残業バッファ（分）</label><input type="number" id="wt-overtime" value="30" min="0" max="120" placeholder="30"></div>
+          <button class="btn btn-accent" onclick="addWorkType()" style="align-self:flex-end;white-space:nowrap">＋ 追加</button>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.8">
+          ・遅刻許容：設定分以内の遅刻は定時出勤扱い（例：15分 → 9:15までは9:00扱い）<br>
+          ・残業バッファ：退勤時刻＋設定分以内はノーカウント（例：30分 → 17:30まで残業なし）<br>
+          ・休憩：出退勤の差から自動で引く
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">勤務区分一覧</div></div>
+        <table class="tbl">
+          <thead><tr><th>区分名</th><th>出勤</th><th>退勤</th><th>休憩</th><th>遅刻許容</th><th>残業バッファ</th><th>実働</th><th></th></tr></thead>
+          <tbody id="wt-tbody"></tbody>
+        </table>
+        <div id="wt-empty" class="empty-state" style="display:none">勤務区分が登録されていません</div>
+      </div>
+    </div>
+
     <!-- STAFF -->
     <div id="page-staff" class="page">
       <div class="page-header"><div class="page-title">スタッフ管理</div></div>
@@ -284,13 +317,14 @@ option{background:var(--bg3);}
           <div class="form-field"><label>名前</label><input type="text" id="add-name" placeholder="田中 太郎"></div>
           <div class="form-field"><label>社員ID</label><input type="text" id="add-id" placeholder="EMP001"></div>
           <div class="form-field"><label>事業部</label><input type="text" id="add-dept" placeholder="営業部"></div>
+          <div class="form-field"><label>勤務区分</label><select id="add-worktype"><option value="">-- 選択 --</option></select></div>
           <button class="btn btn-accent" onclick="addStaff()" style="align-self:flex-end;white-space:nowrap">＋ 追加</button>
         </div>
       </div>
       <!-- 事業部タブ -->
       <div id="staff-dept-tabs" class="dept-tabs"></div>
       <div class="panel">
-        <table class="tbl"><thead><tr><th>名前</th><th>社員ID</th><th>事業部</th><th>登録日</th><th></th></tr></thead><tbody id="staff-tbody"></tbody></table>
+        <table class="tbl"><thead><tr><th>名前</th><th>社員ID</th><th>事業部</th><th>勤務区分</th><th>登録日</th><th></th></tr></thead><tbody id="staff-tbody"></tbody></table>
         <div id="staff-empty" class="empty-state" style="display:none">スタッフが登録されていません</div>
       </div>
     </div>
@@ -300,7 +334,7 @@ option{background:var(--bg3);}
 
 <script>
 const CFG_KEY='qr_admin_cfg2';
-let SB_URL='',SB_KEY='',staffCache=[],locCache=[];
+let SB_URL='',SB_KEY='',staffCache=[],locCache=[],workTypeCache=[];
 let realtimeInterval=null;
 let editTarget=null, editType=null;
 let activeDeptFilter={dash:'全員',rt:'全員',staff:'全員'};
@@ -341,15 +375,18 @@ function setConn(ok){
 
 async function refreshAll(){
   try{
-    [staffCache,locCache]=await Promise.all([
+    [staffCache,locCache,workTypeCache]=await Promise.all([
       sbFetch('staff?select=*&order=name.asc'),
-      sbFetch('locations?select=*&order=name.asc')
+      sbFetch('locations?select=*&order=name.asc'),
+      sbFetch('work_types?select=*&order=name.asc')
     ]);
     setConn(true);
     refreshFilters();
     renderLocTable();
     renderStaffTable();
     renderDeptTabs();
+    renderWorkTypeTable();
+    refreshWorkTypeSelects();
     await renderDashboard();
   }catch(e){ setConn(false); console.error(e); }
 }
@@ -408,6 +445,7 @@ function showPage(id,btn){
   if(id==='report') renderReport();
   if(id==='realtime') renderDashboard();
   if(id==='locations'){ renderLocTable(); refreshLocQRSelect(); }
+  if(id==='worktypes'){ renderWorkTypeTable(); refreshWorkTypeSelects(); }
 }
 
 async function getTodayRecs(){
@@ -534,15 +572,20 @@ async function renderReport(){
       const outs=sr.filter(r=>r.type==='out').map(r=>new Date(r.time));
       const days=new Set(ins.map(d=>d.toDateString())).size;
       const locsCount=new Set(sr.map(r=>r.location_id).filter(Boolean)).size;
-      let mins=0;
-      ins.forEach(it=>{ const ot=outs.find(o=>o>it&&o.toDateString()===it.toDateString()); if(ot) mins+=(ot-it)/60000; });
-      const h=Math.floor(mins/60),mn=Math.round(mins%60);
-      const avgH=days?Math.floor(mins/days/60):0,avgM=days?Math.round((mins/days)%60):0;
+      const wt=workTypeCache.find(w=>w.id===s.work_type_id)||null;
+      const {totalMins, overtimeMins}=calcWorkHours(ins,outs,wt);
+      const h=Math.floor(totalMins/60),mn=Math.round(totalMins%60);
+      const avgH=days?Math.floor(totalMins/days/60):0,avgM=days?Math.round((totalMins/days)%60):0;
+      const ovh=Math.floor(overtimeMins/60),ovm=Math.round(overtimeMins%60);
+      const overtimeStr=overtimeMins>0?`<span style="color:var(--amber);font-family:var(--mono)">${ovh}h${ovm}m</span>`:`<span style="color:var(--text3)">-</span>`;
+      const wtBadge=wt?`<span style="font-size:10px;color:var(--text2)">${wt.start_time}〜${wt.end_time}</span>`:'<span style="color:var(--text3)">未設定</span>';
       return `<tr>
         <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
         <td>${s.dept?`<span class="dept-badge">${s.dept}</span>`:'-'}</td>
-        <td>${days}日</td><td>${locsCount}現場</td>
+        <td>${wtBadge}</td>
+        <td>${days}日</td>
         <td style="font-family:var(--mono)">${h}h ${mn}m</td>
+        <td>${overtimeStr}</td>
         <td style="font-family:var(--mono);color:var(--text2)">${avgH}h ${avgM}m</td>
       </tr>`;
     }).join('');
@@ -636,17 +679,127 @@ function printLocQR(){
   win.document.close();
 }
 
-// ---- STAFF ----
+// ---- WORK TYPES ----
+async function addWorkType(){
+  const name=document.getElementById('wt-name').value.trim();
+  const start=document.getElementById('wt-start').value;
+  const end=document.getElementById('wt-end').value;
+  const breakMins=parseInt(document.getElementById('wt-break').value)||0;
+  const lateTol=parseInt(document.getElementById('wt-late').value)||0;
+  const otBuf=parseInt(document.getElementById('wt-overtime').value)||30;
+  if(!name){ alert('区分名を入力してください'); return; }
+  const id='WT_'+Date.now();
+  const [sh,sm]=start.split(':').map(Number);
+  const [eh,em]=end.split(':').map(Number);
+  const baseH=Math.max(0,((eh*60+em)-(sh*60+sm)-breakMins)/60);
+  try{
+    await sbFetch('work_types',{method:'POST',prefer:'return=minimal',
+      body:JSON.stringify({id,name,start_time:start,end_time:end,break_minutes:breakMins,late_tolerance:lateTol,overtime_buffer:otBuf,base_hours:baseH})
+    });
+    document.getElementById('wt-name').value='';
+    workTypeCache=await sbFetch('work_types?select=*&order=name.asc');
+    renderWorkTypeTable(); refreshWorkTypeSelects();
+  }catch(e){ alert('追加エラー: '+e.message); }
+}
+
+async function removeWorkType(id){
+  if(!confirm('この勤務区分を削除しますか？')) return;
+  try{
+    await sbFetch(`work_types?id=eq.${id}`,{method:'DELETE'});
+    workTypeCache=await sbFetch('work_types?select=*&order=name.asc');
+    renderWorkTypeTable(); refreshWorkTypeSelects();
+  }catch(e){ alert('削除エラー'); }
+}
+
+function renderWorkTypeTable(){
+  const tbody=document.getElementById('wt-tbody');
+  const empty=document.getElementById('wt-empty');
+  if(!tbody) return;
+  if(!workTypeCache.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=workTypeCache.map(w=>{
+    const [sh,sm]=w.start_time.split(':').map(Number);
+    const [eh,em]=w.end_time.split(':').map(Number);
+    const actualH=Math.max(0,((eh*60+em)-(sh*60+sm)-(w.break_minutes||0))/60);
+    return `<tr>
+      <td><span style="font-weight:500">${w.name}</span></td>
+      <td style="font-family:var(--mono);color:var(--green)">${w.start_time}</td>
+      <td style="font-family:var(--mono);color:var(--red)">${w.end_time}</td>
+      <td style="color:var(--text2)">${w.break_minutes||0}分</td>
+      <td style="color:var(--amber)">${w.late_tolerance||0}分</td>
+      <td style="color:var(--purple)">${w.overtime_buffer||30}分</td>
+      <td style="font-family:var(--mono);color:var(--accent)">${actualH.toFixed(1)}h</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeWorkType('${w.id}')">削除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function refreshWorkTypeSelects(){
+  const opts='<option value="">-- 選択 --</option>'+workTypeCache.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+  const el=document.getElementById('add-worktype');
+  if(el) el.innerHTML=opts;
+  const el2=document.getElementById('edit-worktype');
+  if(el2){ const cur=el2.value; el2.innerHTML=opts; el2.value=cur; }
+}
+
+// 労働時間計算（勤務区分ルール適用）
+function calcWorkHours(ins, outs, workType){
+  let totalMins=0, overtimeMins=0;
+  if(!workType){
+    ins.forEach(it=>{ const ot=outs.find(o=>o>it&&o.toDateString()===it.toDateString()); if(ot) totalMins+=(ot-it)/60000; });
+    return {totalMins, overtimeMins:0};
+  }
+  const [sh,sm]=workType.start_time.split(':').map(Number);
+  const [eh,em]=workType.end_time.split(':').map(Number);
+  const baseStartMins=sh*60+sm;
+  const baseEndMins=eh*60+em;
+  const lateTol=workType.late_tolerance||0;
+  const otBuf=workType.overtime_buffer||30;
+  const breakMins=workType.break_minutes||0;
+  const otThreshold=baseEndMins+otBuf;
+
+  ins.forEach(it=>{
+    const ot=outs.find(o=>o>it&&o.toDateString()===it.toDateString());
+    if(!ot) return;
+    const actualStartMins=it.getHours()*60+it.getMinutes();
+    const actualEndMins=ot.getHours()*60+ot.getMinutes();
+
+    // 出勤：遅刻許容内なら定時扱い、それ以外は実打刻
+    const effectiveStart=actualStartMins<=baseStartMins+lateTol
+      ? baseStartMins
+      : actualStartMins;
+
+    // 退勤：定時〜バッファ内はカット、超えたら残業
+    let effectiveEnd, overtime=0;
+    if(actualEndMins<=baseEndMins){
+      effectiveEnd=actualEndMins;
+    } else if(actualEndMins<=otThreshold){
+      effectiveEnd=baseEndMins; // ノーカウント
+    } else {
+      effectiveEnd=baseEndMins;
+      overtime=actualEndMins-baseEndMins;
+    }
+
+    const worked=Math.max(0, effectiveEnd-effectiveStart-breakMins);
+    totalMins+=worked;
+    overtimeMins+=overtime;
+  });
+  return {totalMins, overtimeMins};
+}
+
+// ---- UPDATED FUNCTIONS ----
 async function addStaff(){
   const name=document.getElementById('add-name').value.trim();
   const id=document.getElementById('add-id').value.trim();
   const dept=document.getElementById('add-dept').value.trim();
+  const wtId=document.getElementById('add-worktype').value||null;
   if(!name||!id){ alert('名前とIDは必須です'); return; }
   try{
-    await sbFetch('staff',{method:'POST',prefer:'return=minimal',body:JSON.stringify({id,name,dept})});
+    await sbFetch('staff',{method:'POST',prefer:'return=minimal',body:JSON.stringify({id,name,dept,work_type_id:wtId})});
     document.getElementById('add-name').value='';
     document.getElementById('add-id').value='';
     document.getElementById('add-dept').value='';
+    document.getElementById('add-worktype').value='';
     await refreshAll();
   }catch(e){ alert('追加エラー: '+e.message); }
 }
@@ -671,6 +824,7 @@ function renderStaffTable(){
       <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
       <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${s.id}</td>
       <td>${s.dept?`<span class="dept-badge">${s.dept}</span>`:'-'}</td>
+      <td style="font-size:12px;color:var(--text2)">${workTypeCache.find(w=>w.id===s.work_type_id)?.name||'<span style="color:var(--text3)">未設定</span>'}</td>
       <td style="font-size:12px;color:var(--text3)">${s.created_at?fmtDate(new Date(s.created_at)):'-'}</td>
       <td style="display:flex;gap:6px">
         <button class="btn btn-warn btn-sm" onclick="openEditModal('staff','${s.id}')">✏️ 編集</button>
@@ -688,10 +842,12 @@ function openEditModal(type, id){
   if(type==='staff'){
     const s=staffCache.find(x=>x.id===id);
     title.textContent='スタッフ編集';
+    const wtOpts='<option value="">-- 未設定 --</option>'+workTypeCache.map(w=>`<option value="${w.id}"${s.work_type_id===w.id?' selected':''}>${w.name}</option>`).join('');
     body.innerHTML=`
       <div class="form-field"><label>名前</label><input type="text" id="edit-name" value="${s.name}"></div>
       <div class="form-field"><label>社員ID</label><input type="text" id="edit-id" value="${s.id}" disabled style="opacity:0.5"></div>
-      <div class="form-field"><label>事業部</label><input type="text" id="edit-dept" value="${s.dept||''}"></div>`;
+      <div class="form-field"><label>事業部</label><input type="text" id="edit-dept" value="${s.dept||''}"></div>
+      <div class="form-field"><label>勤務区分</label><select id="edit-worktype">${wtOpts}</select></div>`;
   } else if(type==='location'){
     const l=locCache.find(x=>x.id===id);
     title.textContent='現場編集';
@@ -712,8 +868,9 @@ async function submitEdit(){
     if(editType==='staff'){
       const name=document.getElementById('edit-name').value.trim();
       const dept=document.getElementById('edit-dept').value.trim();
+      const wtId=document.getElementById('edit-worktype').value||null;
       if(!name){ alert('名前は必須です'); return; }
-      await sbFetch(`staff?id=eq.${editTarget}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({name,dept})});
+      await sbFetch(`staff?id=eq.${editTarget}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({name,dept,work_type_id:wtId})});
       await refreshAll();
     } else if(editType==='location'){
       const name=document.getElementById('edit-loc-name').value.trim();
