@@ -353,7 +353,7 @@ async function doStamp(){
     showResult(`✓ ${label}しました\n${selectedStaff.name} — ${fmtT(new Date())}`,true);
     if(navigator.vibrate) navigator.vibrate([80,40,80]);
     loadHistory();
-  }catch(e){ showResult('❌ 通信エラー。もう一度試してください',false); }
+  }catch(e){ showResult('❌ エラー: '+e.message,false); }
   finally{ btn.disabled=false; btn.textContent='打刻する'; }
 }
 
