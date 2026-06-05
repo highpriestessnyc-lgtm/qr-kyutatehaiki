@@ -345,7 +345,7 @@ async function doStamp(){
         staff_id:selectedStaff.id, staff_name:selectedStaff.name,
         dept_id:selectedStaff.dept_id||null, dept_name:'',
         location_id:locData.id, location_name:locData.name,
-        work_type_id:wtId||null, work_type_name:wtName,
+        work_type_id:wtId||null, work_type_name:wtName||'',
         type:stampType, is_online:false, time:new Date().toISOString()
       })
     });
@@ -353,7 +353,7 @@ async function doStamp(){
     showResult(`✓ ${label}しました\n${selectedStaff.name} — ${fmtT(new Date())}`,true);
     if(navigator.vibrate) navigator.vibrate([80,40,80]);
     loadHistory();
-  }catch(e){ showResult('❌ エラー: '+e.message,false); }
+  }catch(e){ showResult('❌ 通信エラー。もう一度試してください',false); }
   finally{ btn.disabled=false; btn.textContent='打刻する'; }
 }
 
