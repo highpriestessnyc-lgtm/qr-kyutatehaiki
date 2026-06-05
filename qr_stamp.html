@@ -331,12 +331,17 @@ async function doStamp(){
   const wtSel=document.getElementById('wt-sel');
   let wtId=null, wtName='';
   if(wtWrap.classList.contains('show')&&wtSel.value){
-    wtId=wtSel.value;
-    wtName=wtCache.find(w=>w.id===wtId)?.name||'';
+    const found=wtCache.find(w=>w.id===wtSel.value);
+    if(found){ wtId=found.id; wtName=found.name; }
   } else {
     const wtIds=selectedStaff.work_type_ids||[];
-    if(wtIds.length===1){ wtId=wtIds[0]; wtName=wtCache.find(w=>w.id===wtId)?.name||''; }
+    if(wtIds.length===1){
+      const found=wtCache.find(w=>w.id===wtIds[0]);
+      if(found){ wtId=found.id; wtName=found.name; }
+    }
   }
+  // 安全確認：wtIdがwtCacheに存在しない場合は必ずnullに
+  if(wtId && !wtCache.find(w=>w.id===wtId)) { wtId=null; wtName=''; }
   const btn=document.getElementById('stamp-btn');
   btn.disabled=true; btn.textContent='送信中...';
   try{
