@@ -706,8 +706,55 @@ async function deleteAtt(id){
 function exportCSV(){
   const recs=window._recs||[];
   if(!recs.length){ alert('データがありません'); return; }
-  const rows=recs.map(r=>`${fmtDT(new Date(r.time))},${r.staff_name},${r.staff_id},${deptName(r.dept_id)||''},${r.location_name||''},${r.work_type_name||''},${r.is_online?'オンライン':'現場'},${r.type==='in'?'出勤':'退勤'}`);
-  const csv='\uFEFF日時,スタッフ名,社員ID,事業部,現場,勤務区分,打刻方法,種別\n'+rows.join('\n');
+
+  // スタッフ・日付ごとにグループ化
+  const groups={};
+  recs.forEach(r=>{
+    const d=fmtD(new Date(r.time));
+    const key=`${r.staff_id}__${d}`;
+    if(!groups[key]) groups[key]={
+      date:d, staffId:r.staff_id, staffName:r.staff_name,
+      deptName:deptName(r.dept_id)||'', locName:r.location_name||'',
+      wtId:r.work_type_id, wtName:r.work_type_name||'',
+      ins:[], outs:[]
+    };
+    if(r.type==='in') groups[key].ins.push(new Date(r.time));
+    else groups[key].outs.push(new Date(r.time));
+  });
+
+  const header='日付,スタッフ名,社員ID,事業部,現場,勤務区分,出勤時刻,退勤時刻,勤務時間,休憩,実働時間,残業';
+  const rows=Object.values(groups).sort((a,b)=>a.date>b.date?1:-1).map(g=>{
+    // 出勤・退勤をペアリング
+    const ins=[...g.ins].sort((a,b)=>a-b);
+    const outs=[...g.outs].sort((a,b)=>a-b);
+    const inTime=ins.length?fmtT(ins[0]):'-';
+    const outTime=outs.length?fmtT(outs[outs.length-1]):'-';
+
+    // 勤務区分を取得
+    const wt=wtCache.find(w=>w.id===g.wtId)||null;
+    const breakM=wt?wt.break_minutes||0:0;
+
+    // 勤務時間計算
+    let totalMins=0, otMins=0;
+    if(ins.length&&outs.length){
+      const {total,ot}=calcHours(ins,outs,wt);
+      totalMins=total; otMins=ot;
+    }
+
+    // 実働（休憩引き後）
+    const actualMins=Math.max(0,totalMins);
+    const grossMins=actualMins+otMins; // 総勤務時間（休憩含む）
+
+    const fmtM=m=>{ const h=Math.floor(m/60),mn=Math.round(m%60); return h>0?`${h}h${mn}m`:`${mn}m`; };
+    const grossStr=ins.length&&outs.length?fmtM(grossMins+breakM):'-';
+    const actualStr=ins.length&&outs.length?fmtM(actualMins):'-';
+    const otStr=otMins>0?fmtM(otMins):'0';
+    const breakStr=breakM>0?`${breakM}分`:'0分';
+
+    return `${g.date},${g.staffName},${g.staffId},${g.deptName},${g.locName},${g.wtName},${inTime},${outTime},${grossStr},${breakStr},${actualStr},${otStr}`;
+  });
+
+  const csv='\uFEFF'+header+'\n'+rows.join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='出勤簿_'+new Date().toISOString().slice(0,10)+'.csv';
