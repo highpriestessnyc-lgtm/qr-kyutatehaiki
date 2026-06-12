@@ -572,16 +572,37 @@ function showPage(id,btn){
 // ---- DASHBOARD ----
 async function getTodayRecs(){
   const t=new Date().toISOString().slice(0,10);
-  return await sb(`attendance?time=gte.${t}T00:00:00&time=lte.${t}T23:59:59&order=time.desc`);
+  return await sb(`attendance?time=gte.${t}T00:00:00&time=lte.${t}T23:59:59&order=time.asc`);
+}
+
+// スタッフごとに「現在の状態」と「最後の出勤時刻」を正しく判定
+function buildStatusMap(recs){
+  const map={};
+  // time.ascで来るので古い順に処理
+  recs.forEach(r=>{
+    if(!map[r.staff_id]) map[r.staff_id]={status:'abs',inTime:null,outTime:null,lastRec:null,location:null};
+    const s=map[r.staff_id];
+    if(r.type==='in'){
+      s.status='in';
+      s.inTime=new Date(r.time);
+      s.outTime=null;
+      s.location=r.location_name||'';
+      s.lastRec=r;
+    } else {
+      s.status='out';
+      s.outTime=new Date(r.time);
+      s.lastRec=r;
+    }
+  });
+  return map;
 }
 
 async function renderDashboard(){
   try{
     const recs=await getTodayRecs();
-    const map={};
-    recs.forEach(r=>{ map[r.staff_id]=r; });
+    const map=buildStatusMap(recs);
     let inC=0,outC=0;
-    staffCache.forEach(s=>{ const l=map[s.id]; if(!l)return; if(l.type==='in')inC++; else outC++; });
+    staffCache.forEach(s=>{ const l=map[s.id]; if(!l)return; if(l.status==='in')inC++; else if(l.status==='out')outC++; });
     const abs=Math.max(0,staffCache.length-inC-outC);
     ['d-in','rt-in'].forEach(id=>{ const e=document.getElementById(id);if(e)e.textContent=inC; });
     ['d-out','rt-out'].forEach(id=>{ const e=document.getElementById(id);if(e)e.textContent=outC; });
@@ -602,10 +623,26 @@ function renderStatusTable(tbodyId,map,scope){
   if(!filtered.length){ tbody.innerHTML='<tr><td colspan="5" class="empty-state">該当なし</td></tr>';return; }
   tbody.innerHTML=filtered.map(s=>{
     const l=map[s.id];
-    const badge=l?(l.type==='in'?'<span class="badge badge-in">出勤中</span>':'<span class="badge badge-out">退勤済</span>'):'<span class="badge badge-abs">未出勤</span>';
-    const t=l?fmtT(new Date(l.time)):'-';
-    const loc=l&&l.location_name?`<span class="loc-badge">${l.location_name}</span>`:(l&&l.is_online?'<span class="badge badge-online">オンライン</span>':'-');
-    return `<tr><td><span class="avatar">${initials(s.name)}</span>${s.name}</td><td>${deptBadge(s.dept_id)}</td><td>${badge}</td><td>${loc}</td><td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${t}</td></tr>`;
+    let badge,timeStr,loc='-';
+    if(!l||l.status==='abs'){
+      badge='<span class="badge badge-abs">未出勤</span>';
+      timeStr='-';
+    } else if(l.status==='in'){
+      badge='<span class="badge badge-in">出勤中</span>';
+      timeStr=l.inTime?`<span style="color:var(--green);font-family:var(--mono);font-size:11px">${fmtT(l.inTime)}〜</span>`:'';
+      loc=l.location?`<span class="loc-badge">${l.location}</span>`:'-';
+    } else {
+      badge='<span class="badge badge-out">退勤済</span>';
+      timeStr=l.inTime&&l.outTime?`<span style="font-family:var(--mono);font-size:11px;color:var(--text2)">${fmtT(l.inTime)}〜${fmtT(l.outTime)}</span>`:'';
+      loc=l.lastRec&&l.lastRec.location_name?`<span class="loc-badge">${l.lastRec.location_name}</span>`:'-';
+    }
+    return `<tr>
+      <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
+      <td>${deptBadge(s.dept_id)}</td>
+      <td>${badge}</td>
+      <td>${loc}</td>
+      <td>${timeStr}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -819,9 +856,11 @@ async function renderReport(){
     const empty=document.getElementById('rep-empty');
     if(!filtered.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
+    const saveKey=`rep_edit_${month}`;
+    let savedEdits={};
+    try{ savedEdits=JSON.parse(localStorage.getItem(saveKey))||{}; }catch(e){}
     tbody.innerHTML=filtered.map(s=>{
       const sr=recs.filter(r=>r.staff_id===s.id);
-      // 勤務区分ごとに分けて計算
       const wtIds=s.work_type_ids||[];
       const primaryWt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
       const ins=sr.filter(r=>r.type==='in').map(r=>new Date(r.time));
@@ -832,17 +871,92 @@ async function renderReport(){
       const oth=Math.floor(ot/60),otm=Math.round(ot%60);
       const avgh=days?Math.floor(total/days/60):0,avgm=days?Math.round((total/days)%60):0;
       const wtNames=wtIds.map(id=>wtCache.find(w=>w.id===id)?.name||'').filter(Boolean).join(', ')||'-';
+      const edit=savedEdits[s.id]||{};
+      const daysVal=edit.days!==undefined?edit.days:days;
+      const totalVal=edit.total!==undefined?edit.total:`${h}h${mn}m`;
+      const otVal=edit.ot!==undefined?edit.ot:(ot>0?`${oth}h${otm}m`:'-');
+      const avgVal=edit.avg!==undefined?edit.avg:`${avgh}h${avgm}m`;
+      const noteVal=edit.note||'';
       return `<tr>
-        <td><span class="avatar">${initials(s.name)}</span>${s.name}</td>
+        <td><span class="avatar">${initials(s.name)}</span><span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="openPersonalReport('${s.id}','${month}')">${s.name}</span></td>
         <td>${deptBadge(s.dept_id)}</td>
         <td style="font-size:12px;color:var(--text2)">${wtNames}</td>
-        <td>${days}日</td>
-        <td style="font-family:var(--mono)">${h}h${mn}m</td>
-        <td style="font-family:var(--mono);color:${ot>0?'var(--amber)':'var(--text3)'}">${ot>0?oth+'h'+otm+'m':'-'}</td>
-        <td style="font-family:var(--mono);color:var(--text2)">${avgh}h${avgm}m</td>
+        <td><input type="number" value="${daysVal}" min="0" style="width:55px;padding:4px 6px;font-size:13px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','days',this.value)">日</td>
+        <td><input type="text" value="${totalVal}" style="width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','total',this.value)"></td>
+        <td><input type="text" value="${otVal}" style="width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--amber)" onchange="saveRepEdit('${month}','${s.id}','ot',this.value)"></td>
+        <td><input type="text" value="${avgVal}" style="width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text2)" onchange="saveRepEdit('${month}','${s.id}','avg',this.value)"></td>
+        <td><input type="text" value="${noteVal}" placeholder="備考" style="width:110px;padding:4px 6px;font-size:12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','note',this.value)"></td>
       </tr>`;
     }).join('');
+    document.querySelector('#rep-tbody').closest('table').querySelector('thead tr').innerHTML='<th>スタッフ</th><th>事業部</th><th>勤務区分</th><th>出勤日数</th><th>実働時間</th><th>残業時間</th><th>平均/日</th><th>備考</th>';
   }catch(e){ console.error(e); }
+}
+
+function saveRepEdit(month,staffId,field,value){
+  const key=`rep_edit_${month}`;
+  let saved={};
+  try{ saved=JSON.parse(localStorage.getItem(key))||{}; }catch(e){}
+  if(!saved[staffId]) saved[staffId]={};
+  saved[staffId][field]=value;
+  localStorage.setItem(key,JSON.stringify(saved));
+}
+
+async function openPersonalReport(staffId,month){
+  const staff=staffCache.find(s=>s.id===staffId);
+  if(!staff)return;
+  const [y,m]=month.split('-').map(Number);
+  const from=`${y}-${String(m).padStart(2,'0')}-01`;
+  const lastDay=new Date(y,m,0).getDate();
+  const to=`${y}-${String(m).padStart(2,'0')}-${lastDay}`;
+  try{
+    const recs=await sb(`attendance?staff_id=eq.${staffId}&time=gte.${from}T00:00:00&time=lte.${to}T23:59:59&order=time.asc`);
+    const wtIds=staff.work_type_ids||[];
+    const primaryWt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
+    const byDate={};
+    recs.forEach(r=>{
+      const d=fmtD(new Date(r.time));
+      if(!byDate[d]) byDate[d]={ins:[],outs:[]};
+      if(r.type==='in') byDate[d].ins.push(new Date(r.time));
+      else byDate[d].outs.push(new Date(r.time));
+    });
+    let totalMinsAll=0,otMinsAll=0,daysAll=0;
+    const rows=Object.entries(byDate).sort(([a],[b])=>a>b?1:-1).map(([date,{ins,outs}])=>{
+      ins.sort((a,b)=>a-b); outs.sort((a,b)=>a-b);
+      const inT=ins.length?fmtT(ins[0]):'-';
+      const outT=outs.length?fmtT(outs[outs.length-1]):'-';
+      const {total,ot}=calcHours(ins,outs,primaryWt);
+      totalMinsAll+=total; otMinsAll+=ot;
+      if(ins.length) daysAll++;
+      const h=Math.floor(total/60),mn=Math.round(total%60);
+      const oth=Math.floor(ot/60),otm=Math.round(ot%60);
+      const otStr=ot>0?`<span style="color:var(--amber)">${oth}h${otm}m</span>`:'<span style="color:var(--text3)">-</span>';
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:12px">${date}</td>
+        <td style="font-family:var(--mono);color:var(--green)">${inT}</td>
+        <td style="font-family:var(--mono);color:var(--red)">${outT}</td>
+        <td style="font-family:var(--mono)">${h}h${mn}m</td>
+        <td>${otStr}</td>
+      </tr>`;
+    }).join('');
+    const th=Math.floor(totalMinsAll/60),tmn=Math.round(totalMinsAll%60);
+    const oth2=Math.floor(otMinsAll/60),otm2=Math.round(otMinsAll%60);
+    document.getElementById('modal-title').textContent=`${staff.name} — ${month}の勤怠`;
+    document.getElementById('modal-body').innerHTML=`
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-label">出勤日数</div><div class="stat-val accent" style="font-size:22px">${daysAll}日</div></div>
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-label">実働時間</div><div class="stat-val green" style="font-size:22px">${th}h${tmn}m</div></div>
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-label">残業時間</div><div class="stat-val amber" style="font-size:22px">${otMinsAll>0?oth2+'h'+otm2+'m':'-'}</div></div>
+      </div>
+      <div style="overflow-y:auto;max-height:400px">
+        <table class="tbl">
+          <thead><tr><th>日付</th><th>出勤</th><th>退勤</th><th>実働</th><th>残業</th></tr></thead>
+          <tbody>${rows||'<tr><td colspan="5" class="empty-state">データなし</td></tr>'}</tbody>
+        </table>
+      </div>`;
+    document.querySelector('.modal-actions').innerHTML=`<button class="btn btn-ghost" style="width:100%" onclick="closeModal()">閉じる</button>`;
+    modalType='personal'; modalTarget=null;
+    document.getElementById('modal').classList.add('open');
+  }catch(e){ alert('取得エラー'); }
 }
 
 // ---- DEPARTMENTS ----
