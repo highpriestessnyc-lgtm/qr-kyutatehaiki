@@ -901,7 +901,17 @@ function saveRepEdit(month,staffId,field,value){
   localStorage.setItem(key,JSON.stringify(saved));
 }
 
+// 個人レポート用グローバル変数
+let _personalStaffId=null, _personalMonth=null, _personalRecs=[];
+
 async function openPersonalReport(staffId,month){
+  const staff=staffCache.find(s=>s.id===staffId);
+  if(!staff)return;
+  _personalStaffId=staffId; _personalMonth=month;
+  await renderPersonalReport(staffId,month);
+}
+
+async function renderPersonalReport(staffId,month){
   const staff=staffCache.find(s=>s.id===staffId);
   if(!staff)return;
   const [y,m]=month.split('-').map(Number);
@@ -910,53 +920,135 @@ async function openPersonalReport(staffId,month){
   const to=`${y}-${String(m).padStart(2,'0')}-${lastDay}`;
   try{
     const recs=await sb(`attendance?staff_id=eq.${staffId}&time=gte.${from}T00:00:00&time=lte.${to}T23:59:59&order=time.asc`);
+    _personalRecs=recs;
     const wtIds=staff.work_type_ids||[];
     const primaryWt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
+    // 日付ごとにグループ（IDも保持）
     const byDate={};
     recs.forEach(r=>{
       const d=fmtD(new Date(r.time));
-      if(!byDate[d]) byDate[d]={ins:[],outs:[]};
-      if(r.type==='in') byDate[d].ins.push(new Date(r.time));
-      else byDate[d].outs.push(new Date(r.time));
+      if(!byDate[d]) byDate[d]={inRec:null,outRec:null};
+      if(r.type==='in'){
+        if(!byDate[d].inRec||new Date(r.time)<new Date(byDate[d].inRec.time)) byDate[d].inRec=r;
+      } else {
+        if(!byDate[d].outRec||new Date(r.time)>new Date(byDate[d].outRec.time)) byDate[d].outRec=r;
+      }
     });
     let totalMinsAll=0,otMinsAll=0,daysAll=0;
-    const rows=Object.entries(byDate).sort(([a],[b])=>a>b?1:-1).map(([date,{ins,outs}])=>{
-      ins.sort((a,b)=>a-b); outs.sort((a,b)=>a-b);
-      const inT=ins.length?fmtT(ins[0]):'-';
-      const outT=outs.length?fmtT(outs[outs.length-1]):'-';
+    const inputStyle='width:72px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);text-align:center';
+    const rows=Object.entries(byDate).sort(([a],[b])=>a>b?1:-1).map(([date,{inRec,outRec}])=>{
+      const ins=inRec?[new Date(inRec.time)]:[];
+      const outs=outRec?[new Date(outRec.time)]:[];
+      const inT=inRec?fmtT(new Date(inRec.time)):'-';
+      const outT=outRec?fmtT(new Date(outRec.time)):'-';
       const {total,ot}=calcHours(ins,outs,primaryWt);
       totalMinsAll+=total; otMinsAll+=ot;
       if(ins.length) daysAll++;
       const h=Math.floor(total/60),mn=Math.round(total%60);
       const oth=Math.floor(ot/60),otm=Math.round(ot%60);
       const otStr=ot>0?`<span style="color:var(--amber)">${oth}h${otm}m</span>`:'<span style="color:var(--text3)">-</span>';
+      const inId=inRec?inRec.id:'';
+      const outId=outRec?outRec.id:'';
+      // 日付をYYYY-MM-DD形式に変換
+      const parts=date.split('/');
+      const isoDate=`${parts[0]}-${parts[1]}-${parts[2]}`;
       return `<tr>
-        <td style="font-family:var(--mono);font-size:12px">${date}</td>
-        <td style="font-family:var(--mono);color:var(--green)">${inT}</td>
-        <td style="font-family:var(--mono);color:var(--red)">${outT}</td>
-        <td style="font-family:var(--mono)">${h}h${mn}m</td>
+        <td style="font-family:var(--mono);font-size:12px;white-space:nowrap">${date}</td>
+        <td><input type="time" value="${inT!=='-'?inT:''}" style="${inputStyle};color:var(--green)"
+          onchange="updateStampTime(${inId?inId:0},'${isoDate}','in','${staffId}',this.value)" placeholder="--:--"></td>
+        <td><input type="time" value="${outT!=='-'?outT:''}" style="${inputStyle};color:var(--red)"
+          onchange="updateStampTime(${outId?outId:0},'${isoDate}','out','${staffId}',this.value)" placeholder="--:--"></td>
+        <td style="font-family:var(--mono);font-size:12px">${total>0?h+'h'+mn+'m':'-'}</td>
         <td>${otStr}</td>
+        <td>
+          ${inId?`<button class="btn btn-danger btn-sm" onclick="deleteStampById(${inId},'${staffId}','${month}')" style="padding:3px 8px;font-size:11px">出勤削除</button>`:''}
+          ${outId?`<button class="btn btn-danger btn-sm" onclick="deleteStampById(${outId},'${staffId}','${month}')" style="padding:3px 8px;font-size:11px">退勤削除</button>`:''}
+        </td>
       </tr>`;
     }).join('');
     const th=Math.floor(totalMinsAll/60),tmn=Math.round(totalMinsAll%60);
     const oth2=Math.floor(otMinsAll/60),otm2=Math.round(otMinsAll%60);
     document.getElementById('modal-title').textContent=`${staff.name} — ${month}の勤怠`;
     document.getElementById('modal-body').innerHTML=`
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-label">出勤日数</div><div class="stat-val accent" style="font-size:22px">${daysAll}日</div></div>
-        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-label">実働時間</div><div class="stat-val green" style="font-size:22px">${th}h${tmn}m</div></div>
-        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-label">残業時間</div><div class="stat-val amber" style="font-size:22px">${otMinsAll>0?oth2+'h'+otm2+'m':'-'}</div></div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div class="stat-card" style="flex:1;min-width:70px"><div class="stat-label">出勤日数</div><div class="stat-val accent" style="font-size:20px">${daysAll}日</div></div>
+        <div class="stat-card" style="flex:1;min-width:70px"><div class="stat-label">実働時間</div><div class="stat-val green" style="font-size:20px">${th}h${tmn}m</div></div>
+        <div class="stat-card" style="flex:1;min-width:70px"><div class="stat-label">残業時間</div><div class="stat-val amber" style="font-size:20px">${otMinsAll>0?oth2+'h'+otm2+'m':'-'}</div></div>
       </div>
-      <div style="overflow-y:auto;max-height:400px">
+      <div style="overflow-y:auto;max-height:380px">
         <table class="tbl">
-          <thead><tr><th>日付</th><th>出勤</th><th>退勤</th><th>実働</th><th>残業</th></tr></thead>
-          <tbody>${rows||'<tr><td colspan="5" class="empty-state">データなし</td></tr>'}</tbody>
+          <thead><tr><th>日付</th><th>出勤</th><th>退勤</th><th>実働</th><th>残業</th><th></th></tr></thead>
+          <tbody>${rows||'<tr><td colspan="6" class="empty-state">データなし</td></tr>'}</tbody>
         </table>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border)">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase">打刻を手動追加</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="date" id="add-date-p" style="width:140px;padding:7px 10px;font-size:13px" value="">
+          <input type="time" id="add-in-p" placeholder="出勤" style="width:100px;padding:7px 10px;font-size:13px">
+          <input type="time" id="add-out-p" placeholder="退勤" style="width:100px;padding:7px 10px;font-size:13px">
+          <button class="btn btn-accent btn-sm" onclick="addPersonalStamp('${staffId}','${month}')">追加</button>
+        </div>
       </div>`;
     document.querySelector('.modal-actions').innerHTML=`<button class="btn btn-ghost" style="width:100%" onclick="closeModal()">閉じる</button>`;
     modalType='personal'; modalTarget=null;
     document.getElementById('modal').classList.add('open');
   }catch(e){ alert('取得エラー'); }
+}
+
+async function updateStampTime(recId, isoDate, type, staffId, timeVal){
+  if(!timeVal) return;
+  const newTime=new Date(`${isoDate}T${timeVal}:00`).toISOString();
+  if(recId && recId!==0){
+    // 既存レコードを更新
+    try{
+      await sb(`attendance?id=eq.${recId}`,{method:'PATCH',prefer:'return=minimal',body:JSON.stringify({time:newTime})});
+    }catch(e){ alert('更新エラー: '+e.message); return; }
+  } else {
+    // 新規レコードを追加
+    const staff=staffCache.find(s=>s.id===staffId);
+    if(!staff) return;
+    const wtIds=staff.work_type_ids||[];
+    const wt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
+    try{
+      await sb('attendance',{method:'POST',prefer:'return=minimal',body:JSON.stringify({
+        staff_id:staffId, staff_name:staff.name,
+        dept_id:staff.dept_id||null, dept_name:'',
+        location_id:null, location_name:'',
+        work_type_id:wt?.id||null, work_type_name:wt?.name||'',
+        type, is_online:true, time:newTime
+      })});
+    }catch(e){ alert('追加エラー: '+e.message); return; }
+  }
+  await renderPersonalReport(staffId, _personalMonth);
+}
+
+async function deleteStampById(recId, staffId, month){
+  if(!confirm('この打刻を削除しますか？')) return;
+  try{
+    await sb(`attendance?id=eq.${recId}`,{method:'DELETE'});
+    await renderPersonalReport(staffId, month);
+  }catch(e){ alert('削除エラー'); }
+}
+
+async function addPersonalStamp(staffId, month){
+  const date=document.getElementById('add-date-p').value;
+  const inT=document.getElementById('add-in-p').value;
+  const outT=document.getElementById('add-out-p').value;
+  if(!date){ alert('日付を入力してください'); return; }
+  if(!inT&&!outT){ alert('出勤か退勤のどちらかを入力してください'); return; }
+  const staff=staffCache.find(s=>s.id===staffId);
+  const wtIds=staff.work_type_ids||[];
+  const wt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
+  const base={staff_id:staffId,staff_name:staff.name,dept_id:staff.dept_id||null,dept_name:'',location_id:null,location_name:'',work_type_id:wt?.id||null,work_type_name:wt?.name||'',is_online:true};
+  try{
+    if(inT) await sb('attendance',{method:'POST',prefer:'return=minimal',body:JSON.stringify({...base,type:'in',time:new Date(`${date}T${inT}:00`).toISOString()})});
+    if(outT) await sb('attendance',{method:'POST',prefer:'return=minimal',body:JSON.stringify({...base,type:'out',time:new Date(`${date}T${outT}:00`).toISOString()})});
+    document.getElementById('add-date-p').value='';
+    document.getElementById('add-in-p').value='';
+    document.getElementById('add-out-p').value='';
+    await renderPersonalReport(staffId, month);
+  }catch(e){ alert('追加エラー: '+e.message); }
 }
 
 // ---- DEPARTMENTS ----
