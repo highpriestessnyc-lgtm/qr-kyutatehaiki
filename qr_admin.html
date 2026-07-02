@@ -276,9 +276,10 @@ option{background:var(--bg3);}
     <div id="page-report" class="page">
       <div class="page-header">
         <div class="page-title">月次レポート</div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <input type="month" id="report-month" onchange="renderReport()" style="width:156px">
           <select id="rep-dept" onchange="renderReport()" style="width:140px"><option value="">全事業部</option></select>
+          <button class="btn btn-accent btn-sm" onclick="exportDeptBulkCSV()">↓ 事業部まとめCSV</button>
         </div>
       </div>
       <div class="stats-grid" id="rep-stats"></div>
@@ -990,7 +991,9 @@ async function renderPersonalReport(staffId,month){
           <button class="btn btn-accent btn-sm" onclick="addPersonalStamp('${staffId}','${month}')">追加</button>
         </div>
       </div>`;
-    document.querySelector('.modal-actions').innerHTML=`<button class="btn btn-ghost" style="width:100%" onclick="closeModal()">閉じる</button>`;
+    document.querySelector('.modal-actions').innerHTML=`
+      <button class="btn btn-accent" style="flex:1" onclick="exportPersonalCSV('${staffId}','${month}')">↓ CSV出力</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">閉じる</button>`;
     modalType='personal'; modalTarget=null;
     document.getElementById('modal').classList.add('open');
   }catch(e){ alert('取得エラー'); }
@@ -1051,7 +1054,135 @@ async function addPersonalStamp(staffId, month){
   }catch(e){ alert('追加エラー: '+e.message); }
 }
 
-// ---- DEPARTMENTS ----
+async function exportPersonalCSV(staffId, month){
+  const staff=staffCache.find(s=>s.id===staffId);
+  if(!staff)return;
+  const [y,m]=month.split('-').map(Number);
+  const from=`${y}-${String(m).padStart(2,'0')}-01`;
+  const lastDay=new Date(y,m,0).getDate();
+  const to=`${y}-${String(m).padStart(2,'0')}-${lastDay}`;
+  try{
+    const recs=await sb(`attendance?staff_id=eq.${staffId}&time=gte.${from}T00:00:00&time=lte.${to}T23:59:59&order=time.asc`);
+    const wtIds=staff.work_type_ids||[];
+    const primaryWt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
+    const breakM=primaryWt?.break_minutes||0;
+
+    // 日付ごとにグループ化
+    const byDate={};
+    recs.forEach(r=>{
+      const d=fmtD(new Date(r.time));
+      if(!byDate[d]) byDate[d]={inRec:null,outRec:null,loc:''};
+      if(r.type==='in'){
+        if(!byDate[d].inRec||new Date(r.time)<new Date(byDate[d].inRec.time)){
+          byDate[d].inRec=r;
+          byDate[d].loc=r.location_name||'';
+        }
+      } else {
+        if(!byDate[d].outRec||new Date(r.time)>new Date(byDate[d].outRec.time)) byDate[d].outRec=r;
+      }
+    });
+
+    const fmtMins=mins=>{ const h=Math.floor(mins/60),mn=Math.round(mins%60); return h>0?`${h}h${mn}m`:`${mn}m`; };
+    let totalMinsAll=0,otMinsAll=0,daysAll=0;
+
+    const header='日付,曜日,出勤時刻,退勤時刻,勤務時間,休憩,実働時間,残業,現場,勤務区分';
+    const rows=Object.entries(byDate).sort(([a],[b])=>a>b?1:-1).map(([date,{inRec,outRec,loc}])=>{
+      const ins=inRec?[new Date(inRec.time)]:[];
+      const outs=outRec?[new Date(outRec.time)]:[];
+      const inT=inRec?fmtT(new Date(inRec.time)):'-';
+      const outT=outRec?fmtT(new Date(outRec.time)):'-';
+      const {total,ot}=calcHours(ins,outs,primaryWt);
+      totalMinsAll+=total; otMinsAll+=ot;
+      if(ins.length) daysAll++;
+      const grossMins=total+breakM;
+      const dow=['日','月','火','水','木','金','土'][new Date(date.replace(/\//g,'-')).getDay()];
+      const wtName=primaryWt?.name||'-';
+      return `${date},${dow},${inT},${outT},${ins.length&&outs.length?fmtMins(grossMins):'-'},${breakM}分,${total>0?fmtMins(total):'-'},${ot>0?fmtMins(ot):'-'},${loc||'-'},${wtName}`;
+    });
+
+    // 合計行
+    rows.push('');
+    rows.push(`合計,,,,,,${fmtMins(totalMinsAll)},${otMinsAll>0?fmtMins(otMinsAll):'-'},,`);
+    rows.push(`出勤日数: ${daysAll}日,平均実働: ${daysAll?fmtMins(Math.round(totalMinsAll/daysAll)):'-'},,,,,,,, `);
+
+    const csv='\uFEFF'+header+'\n'+rows.join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    a.download=`${staff.name}_${month}.csv`;
+    a.click();
+  }catch(e){ alert('CSV出力エラー: '+e.message); }
+}
+
+
+async function exportDeptBulkCSV(){
+  const month=document.getElementById('report-month').value;
+  const deptId=document.getElementById('rep-dept').value;
+  if(!month){ alert('月を選択してください'); return; }
+  const [y,m]=month.split('-').map(Number);
+  const from=`${y}-${String(m).padStart(2,'0')}-01`;
+  const lastDay=new Date(y,m,0).getDate();
+  const to=`${y}-${String(m).padStart(2,'0')}-${lastDay}`;
+  const targetStaff=deptId?staffCache.filter(s=>s.dept_id===deptId):staffCache;
+  if(!targetStaff.length){ alert('スタッフがいません'); return; }
+  try{
+    const allRecs=await sb(`attendance?time=gte.${from}T00:00:00&time=lte.${to}T23:59:59&order=time.asc`);
+    const fmtMins=mins=>{ const h=Math.floor(mins/60),mn=Math.round(mins%60); return h>0?`${h}h${mn}m`:`${mn}m`; };
+    const dow=['日','月','火','水','木','金','土'];
+    const lines=[];
+    const deptLabel=deptId?(deptCache.find(d=>d.id===deptId)?.name||'不明'):'全事業部';
+    lines.push(`${deptLabel} - ${y}年${m}月度 勤怠レポート`);
+    lines.push('');
+    for(const staff of targetStaff){
+      const wtIds=staff.work_type_ids||[];
+      const primaryWt=wtIds.length?wtCache.find(w=>w.id===wtIds[0]):null;
+      const breakM=primaryWt?.break_minutes||0;
+      const wtName=primaryWt?.name||'-';
+      const dn=deptCache.find(d=>d.id===staff.dept_id)?.name||'-';
+      const recs=allRecs.filter(r=>r.staff_id===staff.id);
+      const byDate={};
+      recs.forEach(r=>{
+        const d=fmtD(new Date(r.time));
+        if(!byDate[d]) byDate[d]={inRec:null,outRec:null,loc:''};
+        if(r.type==='in'){
+          if(!byDate[d].inRec||new Date(r.time)<new Date(byDate[d].inRec.time)){ byDate[d].inRec=r; byDate[d].loc=r.location_name||''; }
+        } else {
+          if(!byDate[d].outRec||new Date(r.time)>new Date(byDate[d].outRec.time)) byDate[d].outRec=r;
+        }
+      });
+      let totalMinsAll=0,otMinsAll=0,daysAll=0;
+      lines.push(`■ ${staff.name}（${dn} / ${wtName}）`);
+      lines.push('日付,曜日,出勤時刻,退勤時刻,勤務時間,休憩,実働時間,残業,現場');
+      const dateEntries=Object.entries(byDate).sort(([a],[b])=>a>b?1:-1);
+      if(!dateEntries.length){
+        lines.push('（打刻なし）');
+      } else {
+        dateEntries.forEach(([date,{inRec,outRec,loc}])=>{
+          const ins=inRec?[new Date(inRec.time)]:[];
+          const outs=outRec?[new Date(outRec.time)]:[];
+          const inT=inRec?fmtT(new Date(inRec.time)):'-';
+          const outT=outRec?fmtT(new Date(outRec.time)):'-';
+          const {total,ot}=calcHours(ins,outs,primaryWt);
+          totalMinsAll+=total; otMinsAll+=ot;
+          if(ins.length) daysAll++;
+          const grossMins=total+breakM;
+          const d2=dow[new Date(date.replace(/\//g,'-')).getDay()];
+          lines.push(`${date},${d2},${inT},${outT},${ins.length&&outs.length?fmtMins(grossMins):'-'},${breakM}分,${total>0?fmtMins(total):'-'},${ot>0?fmtMins(ot):'-'},${loc||'-'}`);
+        });
+      }
+      lines.push(`合計,,,,,, ${daysAll?fmtMins(totalMinsAll):'-'},${otMinsAll>0?fmtMins(otMinsAll):'-'},`);
+      lines.push(`出勤日数: ${daysAll}日, 平均実働: ${daysAll?fmtMins(Math.round(totalMinsAll/daysAll)):'-'},,,,,,, `);
+      lines.push('');
+      lines.push('──────────────────────');
+      lines.push('');
+    }
+    const csv='\uFEFF'+lines.join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    a.download=`${deptLabel}_${month}_勤怠レポート.csv`;
+    a.click();
+  }catch(e){ alert('CSV出力エラー: '+e.message); }
+}
+
 async function addDept(){
   const name=document.getElementById('dept-name').value.trim();
   const color=document.getElementById('dept-color').value;
