@@ -860,6 +860,10 @@ async function renderReport(){
     const saveKey=`rep_edit_${month}`;
     let savedEdits={};
     try{ savedEdits=JSON.parse(localStorage.getItem(saveKey))||{}; }catch(e){}
+
+    const iStyle='width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);text-align:center';
+    const origStyle='font-size:10px;color:var(--text3);display:block;text-align:center;margin-top:1px';
+
     tbody.innerHTML=filtered.map(s=>{
       const sr=recs.filter(r=>r.staff_id===s.id);
       const wtIds=s.work_type_ids||[];
@@ -872,34 +876,93 @@ async function renderReport(){
       const oth=Math.floor(ot/60),otm=Math.round(ot%60);
       const avgh=days?Math.floor(total/days/60):0,avgm=days?Math.round((total/days)%60):0;
       const wtNames=wtIds.map(id=>wtCache.find(w=>w.id===id)?.name||'').filter(Boolean).join(', ')||'-';
+
+      // 自動計算値（オリジナル）
+      const origDays=days;
+      const origTotal=`${h}h${mn}m`;
+      const origOt=ot>0?`${oth}h${otm}m`:'-';
+      const origAvg=`${avgh}h${avgm}m`;
+
+      // 修正値（あれば）
       const edit=savedEdits[s.id]||{};
-      const daysVal=edit.days!==undefined?edit.days:days;
-      const totalVal=edit.total!==undefined?edit.total:`${h}h${mn}m`;
-      const otVal=edit.ot!==undefined?edit.ot:(ot>0?`${oth}h${otm}m`:'-');
-      const avgVal=edit.avg!==undefined?edit.avg:`${avgh}h${avgm}m`;
+      const hasEdit=Object.keys(edit).some(k=>k!=='note'&&edit[k]!==undefined);
+      const daysVal=edit.days!==undefined?edit.days:origDays;
+      const totalVal=edit.total!==undefined?edit.total:origTotal;
+      const otVal=edit.ot!==undefined?edit.ot:origOt;
+      const avgVal=edit.avg!==undefined?edit.avg:origAvg;
       const noteVal=edit.note||'';
-      return `<tr>
-        <td><span class="avatar">${initials(s.name)}</span><span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="openPersonalReport('${s.id}','${month}')">${s.name}</span></td>
+
+      // 修正済みの場合は元の値を薄く表示
+      const daysDiff=edit.days!==undefined&&String(edit.days)!==String(origDays);
+      const totalDiff=edit.total!==undefined&&edit.total!==origTotal;
+      const otDiff=edit.ot!==undefined&&edit.ot!==origOt;
+      const avgDiff=edit.avg!==undefined&&edit.avg!==origAvg;
+
+      const editBorder=hasEdit?'border:0.5px solid rgba(255,179,71,0.5)':'border:0.5px solid var(--border2)';
+
+      return `<tr style="${hasEdit?'background:rgba(255,179,71,0.04)':''}">
+        <td>
+          <span class="avatar">${initials(s.name)}</span>
+          <span style="cursor:pointer;text-decoration:underline;color:var(--accent)" onclick="openPersonalReport('${s.id}','${month}')">${s.name}</span>
+        </td>
         <td>${deptBadge(s.dept_id)}</td>
         <td style="font-size:12px;color:var(--text2)">${wtNames}</td>
-        <td><input type="number" value="${daysVal}" min="0" style="width:55px;padding:4px 6px;font-size:13px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','days',this.value)">日</td>
-        <td><input type="text" value="${totalVal}" style="width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','total',this.value)"></td>
-        <td><input type="text" value="${otVal}" style="width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--amber)" onchange="saveRepEdit('${month}','${s.id}','ot',this.value)"></td>
-        <td><input type="text" value="${avgVal}" style="width:75px;padding:4px 6px;font-size:13px;font-family:var(--mono);background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text2)" onchange="saveRepEdit('${month}','${s.id}','avg',this.value)"></td>
-        <td><input type="text" value="${noteVal}" placeholder="備考" style="width:110px;padding:4px 6px;font-size:12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','note',this.value)"></td>
+        <td style="vertical-align:middle">
+          <input type="number" value="${daysVal}" min="0" style="width:55px;padding:4px 6px;font-size:13px;background:var(--bg3);${editBorder};border-radius:6px;color:${daysDiff?'var(--amber)':'var(--text)'};text-align:center" onchange="saveRepEdit('${month}','${s.id}','days',this.value,'${origDays}')">日
+          ${daysDiff?`<span style="${origStyle}">元: ${origDays}日</span>`:''}
+        </td>
+        <td style="vertical-align:middle">
+          <input type="text" value="${totalVal}" style="${iStyle};${editBorder};color:${totalDiff?'var(--amber)':'var(--text)'}" onchange="saveRepEdit('${month}','${s.id}','total',this.value,'${origTotal}')">
+          ${totalDiff?`<span style="${origStyle}">元: ${origTotal}</span>`:''}
+        </td>
+        <td style="vertical-align:middle">
+          <input type="text" value="${otVal}" style="${iStyle};${editBorder};color:${otDiff?'var(--amber)':'var(--amber)'}" onchange="saveRepEdit('${month}','${s.id}','ot',this.value,'${origOt}')">
+          ${otDiff?`<span style="${origStyle}">元: ${origOt}</span>`:''}
+        </td>
+        <td style="vertical-align:middle">
+          <input type="text" value="${avgVal}" style="${iStyle};${editBorder};color:${avgDiff?'var(--amber)':'var(--text2)'}" onchange="saveRepEdit('${month}','${s.id}','avg',this.value,'${origAvg}')">
+          ${avgDiff?`<span style="${origStyle}">元: ${origAvg}</span>`:''}
+        </td>
+        <td>
+          <input type="text" value="${noteVal}" placeholder="備考" style="width:110px;padding:4px 6px;font-size:12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:6px;color:var(--text)" onchange="saveRepEdit('${month}','${s.id}','note',this.value,'')">
+        </td>
+        <td>
+          ${hasEdit?`<button class="btn btn-danger btn-sm" onclick="resetRepEdit('${month}','${s.id}')" title="元の数値に戻す">↺ リセット</button>`:''}
+        </td>
       </tr>`;
     }).join('');
-    document.querySelector('#rep-tbody').closest('table').querySelector('thead tr').innerHTML='<th>スタッフ</th><th>事業部</th><th>勤務区分</th><th>出勤日数</th><th>実働時間</th><th>残業時間</th><th>平均/日</th><th>備考</th>';
+    document.querySelector('#rep-tbody').closest('table').querySelector('thead tr').innerHTML=
+      '<th>スタッフ</th><th>事業部</th><th>勤務区分</th><th>出勤日数</th><th>実働時間</th><th>残業時間</th><th>平均/日</th><th>備考</th><th></th>';
   }catch(e){ console.error(e); }
 }
 
-function saveRepEdit(month,staffId,field,value){
+function saveRepEdit(month,staffId,field,value,origValue){
   const key=`rep_edit_${month}`;
   let saved={};
   try{ saved=JSON.parse(localStorage.getItem(key))||{}; }catch(e){}
   if(!saved[staffId]) saved[staffId]={};
-  saved[staffId][field]=value;
+  // 元の値と同じなら修正フラグを削除
+  if(String(value)===String(origValue)){
+    delete saved[staffId][field];
+  } else {
+    saved[staffId][field]=value;
+  }
   localStorage.setItem(key,JSON.stringify(saved));
+}
+
+function resetRepEdit(month,staffId){
+  if(!confirm('この人の修正をリセットしてオリジナルの数値に戻しますか？')) return;
+  const key=`rep_edit_${month}`;
+  let saved={};
+  try{ saved=JSON.parse(localStorage.getItem(key))||{}; }catch(e){}
+  // note以外を削除（備考は残す）
+  if(saved[staffId]){
+    const note=saved[staffId].note;
+    saved[staffId]={};
+    if(note) saved[staffId].note=note;
+  }
+  localStorage.setItem(key,JSON.stringify(saved));
+  renderReport();
 }
 
 // 個人レポート用グローバル変数
@@ -1490,7 +1553,14 @@ function openModal(type,id){
   document.getElementById('modal').classList.add('open');
 }
 
-function closeModal(){ document.getElementById('modal').classList.remove('open'); modalType=null; modalTarget=null; }
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  // ボタンを元に戻す
+  document.querySelector('.modal-actions').innerHTML=`
+    <button class="btn btn-accent" style="flex:1" onclick="submitModal()">保存</button>
+    <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">キャンセル</button>`;
+  modalType=null; modalTarget=null;
+}
 
 async function submitModal(){
   try{
